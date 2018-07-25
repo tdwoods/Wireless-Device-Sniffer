@@ -13,9 +13,11 @@ def packetHandler(packet):
 try:
     print("Starting Capture")
     capture = pyshark.LiveCapture(interface = 'wlan0mon', bpf_filter = 'type mgt subtype probe-req')
-    capture.sniff(timeout=10)
+    capture.sniff_continously(packet_count = 5)
     capture.apply_on_packets(packetHandler)
+    pkt = capture[0]
+    pkt.pretty_print()
     print("Done")
 except KeyboardInterrupt:
-    print(str(len(addresses)) + " Unique Addresses found")
+    print(str(len(data)) + " Unique Addresses found")
     print(data)
