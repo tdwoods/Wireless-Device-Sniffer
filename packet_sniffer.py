@@ -4,18 +4,18 @@ import sqlite3
 import subprocess
 import time
 
-addresses = []
+data = {}
 def packetHandler(packet):
     print("Packet Captured")
-    if packet.wlan.ta not in addresses:
-        addresses.append(packet.wlan.ta)
+    if packet.wlan.ta not in data:
+        data[packet.wlan.ta] = packet.radiotap.dbm_antsignal
 
-
-while True:
-    try:
-        print("Starting Capture")
-        capture = LiveCapture(interface = 'wlan0mon', bpf_filter = 'type mgt subtype probe-req')
-        capture.sniff(timeout=60)
-        capture.apply_on_packets(packetHandler)
-    except KeyboardInterrupt:
-        print(len(addresses) + "Unique Addresses found")
+try:
+    print("Starting Capture")
+    capture = pyshark.LiveCapture(interface = 'wlan0mon', bpf_filter = 'type mgt subtype probe-req')
+    capture.sniff(timeout=10)
+    capture.apply_on_packets(packetHandler)
+    print("Done")
+except KeyboardInterrupt:
+    print(str(len(addresses)) + " Unique Addresses found")
+    print(data)
