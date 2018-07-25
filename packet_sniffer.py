@@ -1,14 +1,21 @@
+import datetime
+import pyshark
+import sqlite3
 import subprocess
 import time
-import sys
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
-results = open('Results.txt', 'a')
+addresses = []
+def packetHandler(packet):
+    print("Packet Captured")
+    if packet.wlan.ta not in addresses:
+        addresses.append(packet.wlan.ta)
 
-for x in range(2):
-    startTime = time.time()
-    blah = subprocess.run(["tshark –n –i wlan0mon -a duration:30 –T fields -e wlan.sa"], stdout=subprocess.PIPE)
-    num_devices = set(blah.stdout.decode('UTF-8').split('\n'))
-    results.write(startTime + ': ' + num_devices)
-    time.sleep(30)
+while True:
+    try:
+        print("Starting Capture")
+        capture = LiveCapture(interface = 'wlan0mon', bpf_filter = 'type mgt subtype probe-req')
+        capture.sniff(timeout=60)
+        capture.apply_on_packets(packetHandler)
+        print(len(addresses) + "Unique Addresses found")
+    except KeyboardInterrupt:
+        break
