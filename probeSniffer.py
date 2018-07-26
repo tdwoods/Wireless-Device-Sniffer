@@ -72,9 +72,9 @@ def restart_line():
     sys.stdout.flush()
 
 
-def statusWidget(devices):
+def statusWidget(deviceNumber):
     if not filterMode:
-        sys.stdout.write("Devices found: [" + str(devices) + "]")
+        sys.stdout.write("Devices found: [" + str(deviceNumber) + "]")
     else:
         sys.stdout.write("Devices found: [FILTER MODE]")
     restart_line()
@@ -90,17 +90,8 @@ header = """
 |  |  |  .  |     |     |     \    |  |  ||  ||  |  |  | |     |  .  \\
 |__|  |__|\_|\___/|_____|_____|\___|__|__|____|__|  |__| |_____|__|\__|
 """
-
-try:
-    print(header + "                                       v3.0 by David Schütz (@xdavidhu)\n")
-except:
-    print(header + "                                                      v3.0 by @xdavidhu\n")
-
+print(header)
 print("[W] Make sure to use an interface in monitor mode!\n")
-
-devices = []
-script_path = os.path.dirname(os.path.realpath(__file__))
-script_path = script_path + "/"
 
 externalOptionsSet = False
 if noSQL:
@@ -131,9 +122,11 @@ if externalOptionsSet:
     print()
 
 print("[I] Loading MAC database...")
-with open(script_path + "oui.json", 'r') as content_file:
-    obj = content_file.read()
-resolveObj = json.loads(obj)
+resoleFile = open("OUI.json", "r")
+resolveObj = json.load(resolveFile)
+
+print("[I] Initiliazing Dictionary")
+deviceDictionary = {}
 
 def stop():
     global alreadyStopping
@@ -142,8 +135,9 @@ def stop():
         debug("setting stopping to true")
         alreadyStopping = True
         print("\n[I] Stopping...")
-        if not noSQL:
-            print("[I] Results saved to 'DB-probeSniffer.db'")
+        print("[I] Saving results to DB-probeSniffer.db")
+        saveToMYSQL(deviceDictionary)
+        print("[I] Results saved to 'DB-probeSniffer.db'")
         print("[I] probeSniffer stopped.")
         raise SystemExit
 
@@ -174,166 +168,58 @@ def resolveMac(mac):
         for macArray in resolveObj:
             if macArray[0] == mac[:8].upper():
                 return macArray[1]
-        return "RESOLVE-ERROR"
+        return "COULDNT-RESOLVE"
     except:
         return "RESOLVE-ERROR"
 
 def packetHandler(pkt):
-    statusWidget(len(devices))
-    debug("packetHandler started")
+    try:
+        statusWidget(len(deviceDictionary.keys))
+        debug("packetHandler started")
 
-    if "wlan_mgt" in pkt:
-        nossid = False
-        if not str(pkt.wlan_mgt.tag)[:34] == "Tag: SSID parameter set: Broadcast":
-            ssid = pkt.wlan_mgt.ssid
-        else:
-            nossid = True
-    else:
-        nossid = False
-        if not str(pkt[3].tag)[:34] == "Tag: SSID parameter set: Broadcast":
-            ssid = pkt[3].ssid
-        else:
-            nossid = True
+        rssi = pkt.radiotap.dbm_antsignal
+        mac_address = pkt.wlan.ta
 
-
-    rssi_val = pkt.radiotap.dbm_antsignal
-    mac_address = pkt.wlan.ta
-    bssid = pkt.wlan.da
-
-    if not noresolve:
         debug("resolving mac")
         vendor = resolveMac(mac_address)
         debug("vendor query done")
-    else:
-        vendor = "RESOLVE-OFF"
-    inDevices = False
-    for device in devices:
-        if device == mac_address:
-            inDevices = True
-    if not inDevices:
-        devices.append(mac_address)
-    nickname = getNickname(mac_address)
-    if filterMode:
-        if mac_address != filterMac:
-            return
-    if not nossid:
-        try:
-            debug("sql duplicate check started")
-            if not noSQL:
-                if not checkSQLDuplicate(ssid, mac_address, bssid):
-                    debug("not duplicate")
-                    debug("saving to sql")
-                    saveToMYSQL(mac_address, vendor, ssid, rssi_val, bssid)
-                    debug("saved to sql")
-                    if not noresolve:
-                        print(mac_address + (" [" + str(nickname) + "]" if nickname else "") + " (" + vendor + ")" + (" [" + str(rssi_val) + "]" if not norssi else "") +  " ==> '" + ssid + "'" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-                    else:
-                        print(mac_address + (" [" + str(nickname) + "]" if nickname else "") + (" [" + str(rssi_val) + "]" if not norssi else "") +  " ==> '" + ssid + "'" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-                else:
-                    if saveDuplicates:
-                        debug("saveDuplicates on")
-                        debug("saving to sql")
-                        saveToMYSQL(mac_address, vendor, ssid, rssi_val)
-                        debug("saved to sql")
-                    if showDuplicates:
-                        debug("duplicate")
-                        if not noresolve:
-                            print("[D] " + mac_address + (" [" + str(nickname) + "]" if nickname else "") + " (" + vendor + ")" + (" [" + str(rssi_val) + "]" if not norssi else "")  + " ==> '" + ssid + "'" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-                        else:
-                            print("[D] " + mac_address + (" [" + str(nickname) + "]" if nickname else "") + (" [" + str(rssi_val) + "]" if not norssi else "")  + " ==> '" + ssid + "'" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-            else:
-                if not noresolve:
-                    print(mac_address + (" [" + str(nickname) + "]" if nickname else "") + " (" + vendor + ")" + (" [" + str(rssi_val) + "]" if not norssi else "") + " ==> '" + ssid + "'" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-                else:
-                    print(mac_address + (" [" + str(nickname) + "]" if nickname else "") + (" [" + str(rssi_val) + "]" if not norssi else "") + " ==> '" + ssid + "'" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-        except KeyboardInterrupt:
-            stop()
-            exit()
-        except:
-            pass
-    else:
-        if showBroadcasts:
-            if not noresolve:
-                print(mac_address + (" [" + str(nickname) + "]" if nickname else "") + " (" + vendor + ")" + (" [" + str(rssi_val) + "]" if not norssi else "") + " ==> BROADCAST" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-            else:
-                print(mac_address + (" [" + str(nickname) + "]" if nickname else "") + (" [" + str(rssi_val) + "]" if not norssi else "") + " ==> BROADCAST" + (" [BSSID: " + str(bssid) + "]" if not bssid == "ff:ff:ff:ff:ff:ff" else ""))
-    statusWidget(len(devices))
 
+        debug("setting timestamp")
+        currentTimeStamp = time.Time()
+        currentTimeStamp = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
 
-def SQLConncetor():
-    try:
-        debug("sqlconnector called")
-        global db
-        db = sqlite3.connect("DB-probeSniffer.db")
-        cursor = db.cursor()
-        return cursor
+        debug("checking for duplicates")
+        if mac_address in deviceDictionary:
+            device[mac_address]["timeLastSeen"] = currentTimeStamp
+            device[mac_address]["timesCounted"] += 1
+        else:
+            device[mac_address] = {"RSSI":rssi, "Vendor":vendor,
+                                   "timesCounted":0, "timeFirstSeen": currentTimeStamp,
+                                   "timeLastSeen":"N/A"}
+        statusWidget(len(deviceDictionary.keys))
     except KeyboardInterrupt:
         stop()
         exit()
     except:
-        debug("[!!!] CRASH IN SQLConncetor")
+        debug("[!!!] CRASH IN packetHandler")
         debug(traceback.format_exc())
 
-
-def checkSQLDuplicate(ssid, mac_add, bssid):
-    try:
-        debug("[1] checkSQLDuplicate called")
-        cursor = SQLConncetor()
-        cursor.execute(
-            "select count(*) from probeSniffer where ssid = ? and mac_address = ? and bssid = ?", (ssid, mac_add, bssid))
-        data = cursor.fetchall()
-        data = str(data)
-        debug("[2] checkSQLDuplicate data: " + str(data))
-        db.close()
-        return data != "[(0,)]"
-    except KeyboardInterrupt:
-        stop()
-        exit()
-    except:
-        debug("[!!!] CRASH IN checkSQLDuplicate")
-        debug(traceback.format_exc())
-
-
-def saveToMYSQL(mac_add, vendor, ssid, rssi, bssid):
+def saveToMYSQL(deviceDictionary):
     try:
         debug("saveToMYSQL called")
         cursor = SQLConncetor()
-        ts = time.time()
-        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-        cursor.execute("INSERT INTO probeSniffer VALUES (?, ?, ?, ?, ?, ?)", (mac_add, vendor, ssid,  st, rssi, bssid))
+        for mac_address in deviceDictionary:
+            rssi = device[mac_address]["RSSI"]
+            vendor = device[mac_address]["Vendor"]
+            tc = device[mac_address]["timesCounted"]
+            tfs = device[mac_address]["timeFirstSeen"]
+            tls = device[mac_address]["timeLastSeen"]
+            cursor.execute("INSERT INTO probeSniffer VALUES (?, ?, ?, ?, ?, ?)", (mac_address, vendor, rssi, tc, tfs, tls))
         db.commit()
         db.close()
-    except KeyboardInterrupt:
-        stop()
-        exit()
     except:
         debug("[!!!] CRASH IN saveToMYSQL")
         debug(traceback.format_exc())
-
-
-def setNickname(mac, nickname):
-    debug("setNickname called")
-    cursor = SQLConncetor()
-    cursor.execute(
-        "INSERT INTO probeSnifferNicknames VALUES (?, ?)", (mac, nickname))
-    db.commit()
-    db.close()
-
-
-def getNickname(mac):
-    debug("getNickname called")
-    cursor = SQLConncetor()
-    cursor.execute(
-        "SELECT nickname FROM probeSnifferNicknames WHERE mac = ?", (mac,))
-    data = cursor.fetchone()
-    db.close()
-    if data == None:
-        return False
-    else:
-        data = data[0]
-        data = str(data)
-        return data
-
 
 def main():
     global alreadyStopping
@@ -347,38 +233,13 @@ def main():
             print("\n[!] Cant connect to database. Permission error?\n")
             exit()
         setupCursor = setupDB.cursor()
-        if flushNicks:
-            try:
-                setupCursor.execute("DROP TABLE probeSnifferNicknames")
-                print("\n[I] Nickname database flushed.\n")
-            except:
-                print(
-                    "\n[!] Cant flush nickname database, since its not created yet\n")
         setupCursor.execute(
-            "CREATE TABLE IF NOT EXISTS probeSniffer (mac_address VARCHAR(50),vendor VARCHAR(50),ssid VARCHAR(50), date VARCHAR(50), rssi INT, bssid VARCHAR(50))")
-        setupCursor.execute(
-            "CREATE TABLE IF NOT EXISTS probeSnifferNicknames (mac VARCHAR(50),nickname VARCHAR(50))")
+            '''CREATE TABLE IF NOT EXISTS probeSniffer
+                (mac_address VARCHAR(50) primary key, vendor VARCHAR(50),
+                 rssi INT, timesCounted INT, timeFirstSeen VARCHAR(50),
+                 timeLastSeen VARCHAR(50))''')
         setupDB.commit()
         setupDB.close()
-
-    if addNicks:
-        print("\n[NICKNAMES] Add nicknames to mac addresses.")
-        while True:
-            print()
-            mac = input("[?] Mac address: ")
-            if mac == "":
-                print("[!] Please enter a mac address.")
-                continue
-            nick = input("[?] Nickname for mac '" + str(mac) + "': ")
-            if nick == "":
-                print("[!] Please enter a nickname.")
-                continue
-            setNickname(mac, nick)
-            addAnother = input("[?] Add another nickname? Y/n: ")
-            if addAnother.lower() == "y" or addAnother == "":
-                pass
-            else:
-                break
 
     print("[I] Starting channelhopper in a new thread...")
     path = os.path.realpath(__file__)
@@ -387,7 +248,7 @@ def main():
     chopper.start()
     print("[I] Saving requests to 'DB-probeSniffer.db'")
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
-    statusWidget(len(devices))
+    statusWidget(len(deviceDictionary))
 
     while True:
         try:
