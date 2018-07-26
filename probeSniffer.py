@@ -139,8 +139,11 @@ def packetHandler(pkt):
             deviceDictionary[mac_address]["timesCounted"] += 1
         else:
             deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                   "timesCounted":0, "timeFirstSeen": currentTimeStamp,
+                                   "timesCounted":1, "timeFirstSeen": currentTimeStamp,
                                    "timeLastSeen":"N/A"}
+
+        if len(deviceDictionary.keys()) % 100 == 0:
+            saveToMYSQL(deviceDictionary)
         statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
         stop()
@@ -169,7 +172,7 @@ def saveToMYSQL(deviceDictionary):
 
 def main():
     global alreadyStopping
-    
+
     print("[I] Setting up SQLite...")
 
     try:
