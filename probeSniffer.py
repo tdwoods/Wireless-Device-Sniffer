@@ -174,7 +174,7 @@ def resolveMac(mac):
 
 def packetHandler(pkt):
     try:
-        statusWidget(len(deviceDictionary.keys))
+        statusWidget(len(deviceDictionary.keys()))
         debug("packetHandler started")
 
         rssi = pkt.radiotap.dbm_antsignal
@@ -196,7 +196,7 @@ def packetHandler(pkt):
             device[mac_address] = {"RSSI":rssi, "Vendor":vendor,
                                    "timesCounted":0, "timeFirstSeen": currentTimeStamp,
                                    "timeLastSeen":"N/A"}
-        statusWidget(len(deviceDictionary.keys))
+        statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
         stop()
         exit()
@@ -249,7 +249,7 @@ def main():
     chopper.start()
     print("[I] Saving requests to 'DB-probeSniffer.db'")
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
-    statusWidget(len(deviceDictionary))
+    statusWidget(len(deviceDictionary.keys()))
 
     while True:
         try:
