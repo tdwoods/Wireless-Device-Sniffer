@@ -122,7 +122,7 @@ if externalOptionsSet:
     print()
 
 print("[I] Loading MAC database...")
-resoleFile = open("OUI.json", "r")
+resolveFile = open("oui.json", "r")
 resolveObj = json.load(resolveFile)
 
 print("[I] Initiliazing Dictionary")
@@ -207,7 +207,8 @@ def packetHandler(pkt):
 def saveToMYSQL(deviceDictionary):
     try:
         debug("saveToMYSQL called")
-        cursor = SQLConncetor()
+        db = sqlite3.connect("DB-probeSniffer.db")
+        cursor = db.cursor()
         for mac_address in deviceDictionary:
             rssi = device[mac_address]["RSSI"]
             vendor = device[mac_address]["Vendor"]
