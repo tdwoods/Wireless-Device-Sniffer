@@ -169,23 +169,22 @@ def saveToMYSQL(deviceDictionary):
 
 def main():
     global alreadyStopping
+    
+    print("[I] Setting up SQLite...")
 
-    if not noSQL:
-        print("[I] Setting up SQLite...")
-
-        try:
-            setupDB = sqlite3.connect("DB-probeSniffer.db")
-        except:
-            print("\n[!] Cant connect to database. Permission error?\n")
-            exit()
-        setupCursor = setupDB.cursor()
-        setupCursor.execute(
-            '''CREATE TABLE IF NOT EXISTS probeSniffer
-                (mac_address VARCHAR(50) primary key, vendor VARCHAR(50),
-                 rssi INT, timesCounted INT, timeFirstSeen VARCHAR(50),
-                 timeLastSeen VARCHAR(50))''')
-        setupDB.commit()
-        setupDB.close()
+    try:
+        setupDB = sqlite3.connect("DB-probeSniffer.db")
+    except:
+        print("\n[!] Cant connect to database. Permission error?\n")
+        exit()
+    setupCursor = setupDB.cursor()
+    setupCursor.execute(
+        '''CREATE TABLE IF NOT EXISTS probeSniffer
+            (mac_address VARCHAR(50) primary key, vendor VARCHAR(50),
+             rssi INT, timesCounted INT, timeFirstSeen VARCHAR(50),
+             timeLastSeen VARCHAR(50))''')
+    setupDB.commit()
+    setupDB.close()
 
     print("[I] Starting channelhopper in a new thread...")
     path = os.path.realpath(__file__)
