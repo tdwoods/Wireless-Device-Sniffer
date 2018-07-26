@@ -185,8 +185,7 @@ def packetHandler(pkt):
         debug("vendor query done")
 
         debug("setting timestamp")
-        currentTimeStamp = time.Time()
-        currentTimeStamp = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+        currentTimeStamp = datetime.datetime.now().time()
 
         debug("checking for duplicates")
         if mac_address in deviceDictionary:
