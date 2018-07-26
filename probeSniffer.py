@@ -189,10 +189,10 @@ def packetHandler(pkt):
 
         debug("checking for duplicates")
         if mac_address in deviceDictionary:
-            device[mac_address]["timeLastSeen"] = currentTimeStamp
-            device[mac_address]["timesCounted"] += 1
+            deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
+            deviceDictionary[mac_address]["timesCounted"] += 1
         else:
-            device[mac_address] = {"RSSI":rssi, "Vendor":vendor,
+            deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
                                    "timesCounted":0, "timeFirstSeen": currentTimeStamp,
                                    "timeLastSeen":"N/A"}
         statusWidget(len(deviceDictionary.keys()))
