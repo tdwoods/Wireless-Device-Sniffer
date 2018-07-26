@@ -26,43 +26,13 @@ parser = argparse.ArgumentParser(
     usage="probeSniffer.py [monitor-mode-interface] [options]")
 parser.add_argument(
     "interface", help='interface (in monitor mode) for capturing the packets')
-parser.add_argument("-d", action='store_true',
-                    help='do not show duplicate requests')
-parser.add_argument("-b", action='store_true',
-                    help='do not show \'broadcast\' requests (without ssid)')
-parser.add_argument("-a", action='store_true',
-                    help='save duplicate requests to SQL')
-parser.add_argument("--filter", type=str,
-                    help='only show requests from the specified mac address')
-parser.add_argument('--norssi', action='store_true',
-                    help="include rssi in output")
-parser.add_argument("--nosql", action='store_true',
-                    help='disable SQL logging completely')
-parser.add_argument("--addnicks", action='store_true',
-                    help='add nicknames to mac addresses')
-parser.add_argument("--flushnicks", action='store_true',
-                    help='flush nickname database')
-parser.add_argument('--noresolve', action='store_true',
-                    help="skip resolving mac address")
 parser.add_argument("--debug", action='store_true', help='turn debug mode on')
 
 if len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)
 args = parser.parse_args()
-showDuplicates = not args.d
-showBroadcasts = not args.b
-noSQL = args.nosql
-addNicks = args.addnicks
-flushNicks = args.flushnicks
 debugMode = args.debug
-saveDuplicates = args.a
-filterMode = args.filter != None
-norssi = args.norssi
-noresolve = args.noresolve
-if args.filter != None:
-    filterMac = args.filter
-
 monitor_iface = args.interface
 alreadyStopping = False
 
@@ -73,10 +43,7 @@ def restart_line():
 
 
 def statusWidget(deviceNumber):
-    if not filterMode:
-        sys.stdout.write("Devices found: [" + str(deviceNumber) + "]")
-    else:
-        sys.stdout.write("Devices found: [FILTER MODE]")
+    sys.stdout.write("Devices found: [" + str(deviceNumber) + "]")
     restart_line()
     sys.stdout.flush()
 
@@ -94,27 +61,6 @@ print(header)
 print("[W] Make sure to use an interface in monitor mode!\n")
 
 externalOptionsSet = False
-if noSQL:
-    externalOptionsSet = True
-    print("[I] NO-SQL MODE!")
-if not showDuplicates:
-    externalOptionsSet = True
-    print("[I] Not showing duplicates...")
-if not showBroadcasts:
-    externalOptionsSet = True
-    print("[I] Not showing broadcasts...")
-if filterMode:
-    externalOptionsSet = True
-    print("[I] Only showing requests from '" + filterMac + "'.")
-if saveDuplicates:
-    externalOptionsSet = True
-    print("[I] Saving duplicates to SQL...")
-if norssi:
-    externalOptionsSet = True
-    print("[I] Not showing RSSI values...")
-if noresolve:
-    externalOptionsSet = True
-    print("[I] Not resolving MAC addresses...")
 if debugMode:
     externalOptionsSet = True
     print("[I] Showing debug messages...")
@@ -185,7 +131,7 @@ def packetHandler(pkt):
         debug("vendor query done")
 
         debug("setting timestamp")
-        currentTimeStamp = datetime.datetime.now().time()
+        currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         debug("checking for duplicates")
         if mac_address in deviceDictionary:
