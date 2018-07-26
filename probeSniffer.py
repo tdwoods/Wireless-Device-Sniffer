@@ -209,11 +209,11 @@ def saveToMYSQL(deviceDictionary):
         db = sqlite3.connect("DB-probeSniffer.db")
         cursor = db.cursor()
         for mac_address in deviceDictionary:
-            rssi = device[mac_address]["RSSI"]
-            vendor = device[mac_address]["Vendor"]
-            tc = device[mac_address]["timesCounted"]
-            tfs = device[mac_address]["timeFirstSeen"]
-            tls = device[mac_address]["timeLastSeen"]
+            rssi = deviceDictionary[mac_address]["RSSI"]
+            vendor = deviceDictionary[mac_address]["Vendor"]
+            tc = deviceDictionary[mac_address]["timesCounted"]
+            tfs = deviceDictionary[mac_address]["timeFirstSeen"]
+            tls = deviceDictionary[mac_address]["timeLastSeen"]
             cursor.execute("INSERT INTO probeSniffer VALUES (?, ?, ?, ?, ?, ?)", (mac_address, vendor, rssi, tc, tfs, tls))
         db.commit()
         db.close()
