@@ -26,8 +26,8 @@ except:
 parser = argparse.ArgumentParser(
     usage="probeSniffer.py [monitor-mode-interface] [options]")
 parser.add_argument(
-    "interface", help='interface (in monitor mode) for capturing the packets')
-parser.add_argument("--debug", action='store_true', help='turn debug mode on')
+    "interface", help="interface (in monitor mode) for capturing the packets")
+parser.add_argument("--debug", action="store_true", help="turn debug mode on")
 
 if len(sys.argv) == 1:
     parser.print_help()
@@ -39,7 +39,7 @@ alreadyStopping = False
 
 
 def restart_line():
-    sys.stdout.write('\r')
+    sys.stdout.write("\r")
     sys.stdout.flush()
 
 
@@ -84,11 +84,8 @@ def stop():
         print("\n[I] Stopping...")
         print("[I] Saving results to DB-probeSniffer.db")
         saveToMYSQL()
-        print("[I] Results saved to 'DB-probeSniffer.db'")
-        file = open("mac_addresses.txt","w")
-        for x in deviceDictionary.keys():
-            file.write(x + "\n")
-        file.close()
+        print("[I] Results saved to DB-probeSniffer.db")
+        print("Stopped at: " + datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p"))
         print("[I] probeSniffer stopped.")
         raise SystemExit
 
@@ -117,6 +114,7 @@ def deviceUpdating():
     while True:
         if not alreadyStopping:
             print("[" + str(len(deviceDictionary)) + "] devices found")
+            saveToMYSQL()
             time.sleep(300)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
@@ -145,16 +143,18 @@ def packetHandler(pkt):
         debug("vendor query done")
 
         debug("setting timestamp")
-        currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
+        currentTimeStamp = datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
         debug("checking for duplicates")
-        if mac_address in deviceDictionary:
-            deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
-            deviceDictionary[mac_address]["timesCounted"] += 1
-        else:
-            deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                   "timesCounted":1, "timeFirstSeen": currentTimeStamp,
-                                   "timeLastSeen":"N/A"}
+        if vendor != "COULDNT-RESOLVE" or "RESOLVE-ERROR"
+            if mac_address in deviceDictionary:
+                deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
+                deviceDictionary[mac_address]["timesCounted"] += 1
+                deviceDictionary[mac_address]["RSSI"] = rssi if rssi < deviceDictionary[mac_address]["RSSI"]
+            else:
+                deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
+                                       "timesCounted":1, "timeFirstSeen": currentTimeStamp,
+                                       "timeLastSeen":"N/A"}
         #statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
         stop()
@@ -177,7 +177,10 @@ def saveToMYSQL():
             tfs = deviceDictionary[mac_address]["timeFirstSeen"]
             tls = deviceDictionary[mac_address]["timeLastSeen"]
             iterator += 1
-            cursor.execute("INSERT INTO probeSniffer VALUES (?, ?, ?, ?, ?, ?)", (mac_address, vendor, rssi, tc, tfs, tls))
+            cursor.execute(
+                   """INSERT INTO probeSniffer (mac_address, vendor, rssi, timeCounted, timeFirstSeen, timeLastSeen)
+                   VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE rssi = ?, timeLastSeen = ?""",
+                   (mac_address, rssi, vendor, tc, tfs, tls, rssi, tls))
         print(iterator)
         db.commit()
         db.close()
@@ -198,10 +201,10 @@ def main():
     setupCursor = setupDB.cursor()
     setupCursor.execute("DROP TABLE IF EXISTS probeSniffer")
     setupCursor.execute(
-        '''CREATE TABLE probeSniffer
+        """CREATE TABLE probeSniffer
             (mac_address VARCHAR(50) primary key, vendor VARCHAR(50),
              rssi INT, timesCounted INT, timeFirstSeen VARCHAR(50),
-             timeLastSeen VARCHAR(50))''')
+             timeLastSeen VARCHAR(50))""")
     setupDB.commit()
     setupDB.close()
 
@@ -210,8 +213,6 @@ def main():
     chopper = threading.Thread(target=chopping)
     chopper.daemon = True
     chopper.start()
-    print("[I] Saving requests to 'DB-probeSniffer.db'")
-    print("\n[I] Sniffing started... Please wait for requests to show up...\n")
     #statusWidget(len(deviceDictionary.keys()))
 
     print("[I] Starting deviceUpdating in a new thread...")
@@ -220,13 +221,11 @@ def main():
     updater.daemon = True
     updater.start()
 
-
-    print("[I] Saving requests to 'DB-probeSniffer.db'")
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
     while True:
         try:
-            capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter='type mgt subtype probe-req')
+            capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
             capture.apply_on_packets(packetHandler)
         except KeyboardInterrupt:
             stop()
