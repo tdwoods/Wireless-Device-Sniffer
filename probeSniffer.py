@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -.- coding: utf-8 -.-
 
-try:
+try
+    import subprocess
     import os
     import sys
     import time
@@ -108,6 +109,14 @@ def chopping():
             debug("[CHOPPER] IM STOPPING TOO")
             sys.exit()
 
+def deviceUpdate():
+    while True:
+        if not alreadyStopping:
+            print("[" + str(len(deviceDictionary)) + "] devices found"
+            time.sleep(60)
+        else:
+            debug("[deviceUpdate] IM STOPPING TOO")
+            sys.exit()
 def resolveMac(mac):
     try:
         global resolveObj
@@ -120,7 +129,7 @@ def resolveMac(mac):
 
 def packetHandler(pkt):
     try:
-        statusWidget(len(deviceDictionary.keys()))
+        # statusWidget(len(deviceDictionary.keys()))
         debug("packetHandler started")
 
         rssi = pkt.radiotap.dbm_antsignal
@@ -144,7 +153,7 @@ def packetHandler(pkt):
 
         if len(deviceDictionary.keys()) % 100 == 0:
             saveToMYSQL(deviceDictionary)
-        statusWidget(len(deviceDictionary.keys()))
+        #statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
         stop()
         exit()
@@ -196,7 +205,16 @@ def main():
     chopper.start()
     print("[I] Saving requests to 'DB-probeSniffer.db'")
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
-    statusWidget(len(deviceDictionary.keys()))
+    #statusWidget(len(deviceDictionary.keys()))
+
+    print("[I] Starting deviceUpdate in a new thread...")
+    path = os.path.realpath(__file__)
+    updater = threading.Thread(target=deviceUpdate)
+    updater.daemon = True
+    updater.start()
+
+    print("[I] Saving requests to 'DB-probeSniffer.db'")
+    print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
     while True:
         try:
