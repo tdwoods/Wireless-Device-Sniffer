@@ -83,7 +83,7 @@ def stop():
         alreadyStopping = True
         print("\n[I] Stopping...")
         print("[I] Saving results to DB-probeSniffer.db")
-        saveToMYSQL(deviceDictionary)
+        saveToMYSQL()
         print("[I] Results saved to 'DB-probeSniffer.db'")
         file = open("mac_addresses.txt","w")
         for x in deviceDictionary.keys():
@@ -121,6 +121,7 @@ def deviceUpdating():
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
+
 def resolveMac(mac):
     try:
         global resolveObj
@@ -133,6 +134,7 @@ def resolveMac(mac):
 
 def packetHandler(pkt):
     try:
+        global deviceDictionary
         # statusWidget(len(deviceDictionary.keys()))
         debug("packetHandler started")
         rssi = pkt.radiotap.dbm_antsignal
@@ -143,7 +145,7 @@ def packetHandler(pkt):
         debug("vendor query done")
 
         debug("setting timestamp")
-        currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S %p')
+        currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
 
         debug("checking for duplicates")
         if mac_address in deviceDictionary:
@@ -153,9 +155,6 @@ def packetHandler(pkt):
             deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
                                    "timesCounted":1, "timeFirstSeen": currentTimeStamp,
                                    "timeLastSeen":"N/A"}
-
-        if len(deviceDictionary.keys()) % 100 == 0:
-            saveToMYSQL(deviceDictionary)
         #statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
         stop()
@@ -164,18 +163,22 @@ def packetHandler(pkt):
         debug("[!!!] CRASH IN packetHandler")
         debug(traceback.format_exc())
 
-def saveToMYSQL(deviceDictionary):
+def saveToMYSQL():
     try:
+        global deviceDictionary
         debug("saveToMYSQL called")
         db = sqlite3.connect("DB-probeSniffer.db")
         cursor = db.cursor()
+        iterator = 0
         for mac_address in deviceDictionary:
             rssi = deviceDictionary[mac_address]["RSSI"]
             vendor = deviceDictionary[mac_address]["Vendor"]
             tc = deviceDictionary[mac_address]["timesCounted"]
             tfs = deviceDictionary[mac_address]["timeFirstSeen"]
             tls = deviceDictionary[mac_address]["timeLastSeen"]
+            iterator += 1
             cursor.execute("INSERT INTO probeSniffer VALUES (?, ?, ?, ?, ?, ?)", (mac_address, vendor, rssi, tc, tfs, tls))
+        print(iterator)
         db.commit()
         db.close()
     except:
