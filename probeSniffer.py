@@ -146,11 +146,12 @@ def packetHandler(pkt):
         currentTimeStamp = datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
         debug("checking for duplicates")
-        if vendor != "COULDNT-RESOLVE" or "RESOLVE-ERROR"
+        if vendor != "COULDNT-RESOLVE" or "RESOLVE-ERROR":
             if mac_address in deviceDictionary:
                 deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
                 deviceDictionary[mac_address]["timesCounted"] += 1
-                deviceDictionary[mac_address]["RSSI"] = rssi if rssi < deviceDictionary[mac_address]["RSSI"]
+                if rssi < deviceDictionary[mac_address]["RSSI"]:
+                    deviceDictionary[mac_address]["RSSI"] = rssi 
             else:
                 deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
                                        "timesCounted":1, "timeFirstSeen": currentTimeStamp,
