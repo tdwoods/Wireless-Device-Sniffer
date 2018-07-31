@@ -115,7 +115,7 @@ def deviceUpdating():
         if not alreadyStopping:
             print("[" + str(len(deviceDictionary)) + "] devices found")
             saveToMYSQL()
-            time.sleep(300)
+            time.sleep(30)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
@@ -172,7 +172,7 @@ def saveToMYSQL():
         cursor = db.cursor()
         for m in deviceDictionary:
             r = deviceDictionary[m]["RSSI"]
-            vendor = deviceDictionary[m]["Vendor"]
+            v = deviceDictionary[m]["Vendor"]
             tc = deviceDictionary[m]["timesCounted"]
             tfs = deviceDictionary[m]["timeFirstSeen"]
             tls = deviceDictionary[m]["timeLastSeen"]
@@ -184,6 +184,7 @@ def saveToMYSQL():
         db.commit()
         db.close()
     except:
+        print("Crash saveSQL")
         debug("[!!!] CRASH IN saveToMYSQL")
         debug(traceback.format_exc())
 
