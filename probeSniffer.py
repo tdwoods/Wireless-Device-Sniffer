@@ -85,6 +85,10 @@ def stop():
         print("[I] Saving results to DB-probeSniffer.db")
         saveToMYSQL(deviceDictionary)
         print("[I] Results saved to 'DB-probeSniffer.db'")
+        file = open("mac_addresses.txt","w")
+        for x in deviceDictionary.keys():
+            file.write(x)
+        file.close()
         print("[I] probeSniffer stopped.")
         raise SystemExit
 
@@ -138,8 +142,6 @@ def packetHandler(pkt):
         debug("resolving mac")
         vendor = resolveMac(mac_address)
         debug("vendor query done")
-
-        print(pkt.wlan.fixed.category_code)
 
         debug("setting timestamp")
         currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S %p')
