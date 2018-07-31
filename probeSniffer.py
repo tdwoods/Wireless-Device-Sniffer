@@ -139,8 +139,7 @@ def packetHandler(pkt):
         vendor = resolveMac(mac_address)
         debug("vendor query done")
 
-        if vendor == "Apple" or "Google":
-            pkt.pretty_print()
+        print(pkt.wlan.fixed.category_code)
 
         debug("setting timestamp")
         currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S %p')
