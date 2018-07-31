@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -.- coding: utf-8 -.-
 
-try
+try:
     import subprocess
     import os
     import sys
@@ -112,7 +112,7 @@ def chopping():
 def deviceUpdating():
     while True:
         if not alreadyStopping:
-            print("[" + str(len(deviceDictionary)) + "] devices found"
+            print("[" + str(len(deviceDictionary)) + "] devices found")
             saveToMYSQL(deviceDictionary)
             time.sleep(300)
         else:
