@@ -87,7 +87,7 @@ def stop():
         print("[I] Results saved to 'DB-probeSniffer.db'")
         file = open("mac_addresses.txt","w")
         for x in deviceDictionary.keys():
-            file.write(x)
+            file.write(x + "\n")
         file.close()
         print("[I] probeSniffer stopped.")
         raise SystemExit
@@ -117,7 +117,6 @@ def deviceUpdating():
     while True:
         if not alreadyStopping:
             print("[" + str(len(deviceDictionary)) + "] devices found")
-            saveToMYSQL(deviceDictionary)
             time.sleep(300)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
