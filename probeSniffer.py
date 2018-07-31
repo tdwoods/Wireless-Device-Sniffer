@@ -132,13 +132,15 @@ def packetHandler(pkt):
     try:
         # statusWidget(len(deviceDictionary.keys()))
         debug("packetHandler started")
-        pkt.pretty_print()
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
 
         debug("resolving mac")
         vendor = resolveMac(mac_address)
         debug("vendor query done")
+
+        if vendor == "Apple" or "Google":
+            pkt.pretty_print()
 
         debug("setting timestamp")
         currentTimeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S %p')
