@@ -109,11 +109,12 @@ def chopping():
             debug("[CHOPPER] IM STOPPING TOO")
             sys.exit()
 
-def deviceUpdate():
+def deviceUpdating():
     while True:
         if not alreadyStopping:
             print("[" + str(len(deviceDictionary)) + "] devices found"
-            time.sleep(60)
+            saveToMYSQL(deviceDictionary)
+            time.sleep(300)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
@@ -207,11 +208,12 @@ def main():
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
     #statusWidget(len(deviceDictionary.keys()))
 
-    print("[I] Starting deviceUpdate in a new thread...")
+    print("[I] Starting deviceUpdating in a new thread...")
     path = os.path.realpath(__file__)
-    updater = threading.Thread(target=deviceUpdate)
+    updater = threading.Thread(target=deviceUpdating)
     updater.daemon = True
     updater.start()
+
 
     print("[I] Saving requests to 'DB-probeSniffer.db'")
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
