@@ -196,8 +196,9 @@ def main():
         print("\n[!] Cant connect to database. Permission error?\n")
         exit()
     setupCursor = setupDB.cursor()
+    setupCursor.execute("DROP TABLE IF EXISTS probeSniffer")
     setupCursor.execute(
-        '''CREATE TABLE IF NOT EXISTS probeSniffer
+        '''CREATE TABLE probeSniffer
             (mac_address VARCHAR(50) primary key, vendor VARCHAR(50),
              rssi INT, timesCounted INT, timeFirstSeen VARCHAR(50),
              timeLastSeen VARCHAR(50))''')
