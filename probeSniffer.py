@@ -170,16 +170,17 @@ def saveToMYSQL():
         debug("saveToMYSQL called")
         db = sqlite3.connect("DB-probeSniffer.db")
         cursor = db.cursor()
-        for mac_address in deviceDictionary:
-            rssi = deviceDictionary[mac_address]["RSSI"]
-            vendor = deviceDictionary[mac_address]["Vendor"]
-            tc = deviceDictionary[mac_address]["timesCounted"]
-            tfs = deviceDictionary[mac_address]["timeFirstSeen"]
-            tls = deviceDictionary[mac_address]["timeLastSeen"]
-            cursor.execute(
-                   """INSERT INTO probeSniffer (mac_address, vendor, rssi, timeCounted, timeFirstSeen, timeLastSeen)
-                   VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE rssi = ?, timeLastSeen = ?""",
-                   (mac_address, rssi, vendor, tc, tfs, tls, rssi, tls))
+        for m in deviceDictionary:
+            r = deviceDictionary[m]["RSSI"]
+            vendor = deviceDictionary[m]["Vendor"]
+            tc = deviceDictionary[m]["timesCounted"]
+            tfs = deviceDictionary[m]["timeFirstSeen"]
+            tls = deviceDictionary[m]["timeLastSeen"]
+            format_str = """INSERT INTO probeSniffer (mac_address, vendor, rssi, timeCounted, timeFirstSeen, timeLastSeen)
+                             VALUES("{m}", "{v}", "{r}", "{tc}", "{tfs}", "{tls}")
+                             ON DUPLICATE KEY UPDATE rssi = "{r}", timeLastSeen = "{tls}""""
+            sql_command = format_str.format(m = m, v = v, r = r, tc = tc, tfs = tfs, tls = tls)
+            cur.execute(sql_command)
         db.commit()
         db.close()
     except:
