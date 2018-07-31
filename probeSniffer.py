@@ -176,9 +176,9 @@ def saveToMYSQL():
             tc = deviceDictionary[m]["timesCounted"]
             tfs = deviceDictionary[m]["timeFirstSeen"]
             tls = deviceDictionary[m]["timeLastSeen"]
-            format_str = """INSERT INTO probeSniffer (mac_address, vendor, rssi, timeCounted, timeFirstSeen, timeLastSeen)
+            format_str = '''INSERT INTO probeSniffer (mac_address, vendor, rssi, timeCounted, timeFirstSeen, timeLastSeen)
                              VALUES("{m}", "{v}", "{r}", "{tc}", "{tfs}", "{tls}")
-                             ON DUPLICATE KEY UPDATE rssi = "{r}", timeLastSeen = "{tls}""""
+                             ON DUPLICATE KEY UPDATE rssi = "{r}", timeLastSeen = "{tls}"'''
             sql_command = format_str.format(m = m, v = v, r = r, tc = tc, tfs = tfs, tls = tls)
             cur.execute(sql_command)
         db.commit()
