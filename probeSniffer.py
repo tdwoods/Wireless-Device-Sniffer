@@ -178,7 +178,7 @@ def saveToMYSQL():
             tls = deviceDictionary[m]["timeLastSeen"]
             cur.execute('''INSERT INTO probeSniffer
                         (mac_address, vendor, rssi, timesCounted, timeFirstSeen, timeLastSeen)
-                        VALUES (%s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE rssi = %s, timeLastSeen = %s''',
+                        VALUES (%s, %s, %s, %s, %s, %s)''',
                         (m,v,r,tc,tfs,tls,r,tls))
         db.commit()
         db.close()
