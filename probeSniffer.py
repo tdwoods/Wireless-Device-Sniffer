@@ -151,7 +151,7 @@ def packetHandler(pkt):
                 deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
                 deviceDictionary[mac_address]["timesCounted"] += 1
                 if rssi < deviceDictionary[mac_address]["RSSI"]:
-                    deviceDictionary[mac_address]["RSSI"] = rssi 
+                    deviceDictionary[mac_address]["RSSI"] = rssi
             else:
                 deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
                                        "timesCounted":1, "timeFirstSeen": currentTimeStamp,
@@ -170,19 +170,16 @@ def saveToMYSQL():
         debug("saveToMYSQL called")
         db = sqlite3.connect("DB-probeSniffer.db")
         cursor = db.cursor()
-        iterator = 0
         for mac_address in deviceDictionary:
             rssi = deviceDictionary[mac_address]["RSSI"]
             vendor = deviceDictionary[mac_address]["Vendor"]
             tc = deviceDictionary[mac_address]["timesCounted"]
             tfs = deviceDictionary[mac_address]["timeFirstSeen"]
             tls = deviceDictionary[mac_address]["timeLastSeen"]
-            iterator += 1
             cursor.execute(
                    """INSERT INTO probeSniffer (mac_address, vendor, rssi, timeCounted, timeFirstSeen, timeLastSeen)
                    VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE rssi = ?, timeLastSeen = ?""",
                    (mac_address, rssi, vendor, tc, tfs, tls, rssi, tls))
-        print(iterator)
         db.commit()
         db.close()
     except:
