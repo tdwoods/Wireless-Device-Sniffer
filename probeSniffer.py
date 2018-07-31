@@ -176,10 +176,7 @@ def saveToMYSQL():
             tc = deviceDictionary[m]["timesCounted"]
             tfs = deviceDictionary[m]["timeFirstSeen"]
             tls = deviceDictionary[m]["timeLastSeen"]
-            cur.execute('''INSERT INTO probeSniffer
-                        (mac_address, vendor, rssi, timesCounted, timeFirstSeen, timeLastSeen)
-                        VALUES (%s, %s, %s, %s, %s, %s)''',
-                        (m,v,r,tc,tfs,tls,r,tls))
+            cur.execute('''INSERT OR REPLACE INTO probeSniffer VALUES (?,?,?,?,?,?)''', (m,v,r,tc,tfs,tls,r,tls))
         db.commit()
         db.close()
     except:
