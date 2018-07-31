@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -.- coding: utf-8 -.-
-
 try:
     import subprocess
     import os
@@ -37,17 +36,9 @@ debugMode = args.debug
 monitor_iface = args.interface
 alreadyStopping = False
 
-
 def restart_line():
     sys.stdout.write("\r")
     sys.stdout.flush()
-
-
-def statusWidget(deviceNumber):
-    sys.stdout.write("Devices found: [" + str(deviceNumber) + "]")
-    restart_line()
-    sys.stdout.flush()
-
 
 header = """
  ____  ____   ___  ____    ___ _________  ____ _____ _____  ___ ____
@@ -113,22 +104,21 @@ def chopping():
 def deviceUpdating():
     while True:
         if not alreadyStopping:
-            print("[" + str(len(deviceDictionary)) + "] devices found")
+            print("[I] " + str(len(deviceDictionary))+ " devices found")
+            restart_line()
+            sys.stdout.flush()
             saveToMYSQL()
-            time.sleep(30)
+            time.sleep(600)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
 
 def resolveMac(mac):
-    try:
-        global resolveObj
-        for macArray in resolveObj:
-            if macArray[0] == mac[:8].upper():
-                return macArray[1]
-        return "COULDNT-RESOLVE"
-    except:
-        return "RESOLVE-ERROR"
+    global resolveObj
+    for macArray in resolveObj:
+        if macArray[0] == mac[:8].upper():
+            return macArray[1]
+    return "COULDNT-RESOLVE"
 
 def packetHandler(pkt):
     try:
@@ -146,7 +136,7 @@ def packetHandler(pkt):
         currentTimeStamp = datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
         debug("checking for duplicates")
-        if vendor != "COULDNT-RESOLVE" or "RESOLVE-ERROR":
+        if vendor != "COULDNT-RESOLVE":
             if mac_address in deviceDictionary:
                 deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
                 deviceDictionary[mac_address]["timesCounted"] += 1
