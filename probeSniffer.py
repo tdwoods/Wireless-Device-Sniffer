@@ -108,7 +108,7 @@ def deviceUpdating():
             restart_line()
             sys.stdout.flush()
             saveToMYSQL()
-            time.sleep(600)
+            time.sleep(1200)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
