@@ -110,7 +110,8 @@ def deviceUpdater():
             restart_line()
             sys.stdout.flush()
             saveToMYSQL()
-            time.sleep(900)
+            time.sleep(30)
+            print(str(currentTime) + " " + str(stopTime))
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
@@ -227,7 +228,7 @@ def main():
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
     stopDate = datetime.date.today()
-    stopTime = datetime.time(hour=21,minute=30,second=0)
+    stopTime = datetime.time(hour=21,minute=38,second=0)
     stopTime = datetime.datetime.combine(stopDate,stopTime)
     while currentTime < stopTime:
         try:
