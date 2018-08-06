@@ -104,6 +104,8 @@ def deviceUpdater():
     while True:
         if not alreadyStopping:
             print("[I] " + str(len(deviceDictionary))+ " devices found")
+            cpuTemp = subprocess.check_output("cat /sys/class/thermal/thermal_zone0/temp")
+            print("[I] Cpu Temp: " + cpuTemp)
             restart_line()
             sys.stdout.flush()
             saveToMYSQL()
