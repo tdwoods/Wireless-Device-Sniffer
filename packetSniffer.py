@@ -36,7 +36,7 @@ debugMode = args.debug
 monitor_iface = args.interface
 alreadyStopping = False
 
-def restart_line():
+def restartLine():
     sys.stdout.write("\r")
     sys.stdout.flush()
 
@@ -67,7 +67,7 @@ currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
 stopDate = datetime.date.today()
-stopTime = datetime.time(hour=21,minute=38,second=0)
+stopTime = datetime.time(hour=21,minute=56,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
 
 def stop():
@@ -108,14 +108,13 @@ def chopping():
 def deviceUpdater():
     while True:
         if not alreadyStopping:
+            restartLine()
             print("[I] " + str(len(deviceDictionary))+ " devices found")
             cpuTemp = subprocess.check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"])
             cpuTemp = int(cpuTemp) / 1000
             print("[I] Cpu Temp: " + str(cpuTemp))
-            restart_line()
-            sys.stdout.flush()
-            saveToMYSQL()
             print(str(currentTime) + " " + str(stopTime))
+            saveToMYSQL()
             time.sleep(30)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
@@ -150,6 +149,9 @@ def packetHandler(pkt):
         debug("setting current time")
         currentTime = datetime.datetime.now()
 
+        debug("checking current time against stop time")
+        if currentTime < stopTime:
+            stop()
         debug("adding to dictionary")
         # if vendor != "COULDNT-RESOLVE":
         #     if mac_address not in macList:
@@ -232,7 +234,7 @@ def main():
 
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
-    while currentTime < stopTime:
+    while True:
         try:
             capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
             capture.apply_on_packets(packetHandler)
