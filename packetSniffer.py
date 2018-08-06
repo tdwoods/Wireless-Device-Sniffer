@@ -67,7 +67,7 @@ currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
 stopDate = datetime.date.today()
-stopTime = datetime.time(hour=22,minute=05,second=0)
+stopTime = datetime.time(hour=22,minute=6,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
 
 def stop():
