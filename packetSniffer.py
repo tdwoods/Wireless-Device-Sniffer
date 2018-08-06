@@ -67,7 +67,7 @@ currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
 stopDate = datetime.date.today()
-stopTime = datetime.time(hour=22,minute=6,second=0)
+stopTime = datetime.time(hour=22,minute=8,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
 
 def stop():
@@ -82,7 +82,7 @@ def stop():
         print("[I] Results saved to " + str(datetime.date.today()) + ".db")
         print("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
         print("[I] packetSniffer stopped.")
-        raise SystemExit
+        sys.exit()
 
 
 def debug(msg):
