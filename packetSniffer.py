@@ -151,8 +151,8 @@ def packetHandler(pkt):
 
         debug("checking current time against stop time")
         if currentTime > stopTime:
-            raise SystemExit
-            exit()
+            print("hi")
+            stop()
         debug("adding to dictionary")
         # if vendor != "COULDNT-RESOLVE":
         #     if mac_address not in macList:
