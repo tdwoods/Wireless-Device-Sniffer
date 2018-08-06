@@ -227,7 +227,7 @@ def main():
 
     stopDate = datetime.date.today()
     stopTime = datetime.time(hour=22,minute=0,second=0)
-    stopTime = datime.datetime.combine(stopDate,stopTime)
+    stopTime = datetime.datetime.combine(stopDate,stopTime)
     while currentTime < stopTime:
         try:
             capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
