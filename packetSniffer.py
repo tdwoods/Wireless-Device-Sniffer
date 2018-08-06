@@ -59,9 +59,13 @@ if debugMode:
 if externalOptionsSet:
     print()
 
-print("[I] Loading MAC database...")
+print("[I] Loading OUI database...")
 resolveFile = open("oui.json", "r")
 resolveObj = json.load(resolveFile)
+
+print("[I] Loading MAC database...")
+constant_mac = open("constant_mac_addresses.json","r")
+mac_list = json.load(constant_mac)
 
 print("[I] Initiliazing Dictionary")
 deviceDictionary = {}
@@ -115,9 +119,8 @@ def deviceUpdating():
 
 def resolveMac(mac):
     global resolveObj
-    for macArray in resolveObj:
-        if macArray[0] == mac[:8].upper():
-            return macArray[1]
+    if mac[:8] in resolveObj:
+        return resolveObj[mac]
     return "COULDNT-RESOLVE"
 
 def packetHandler(pkt):
@@ -133,19 +136,20 @@ def packetHandler(pkt):
         debug("vendor query done")
 
         debug("setting timestamp")
-        currentTimeStamp = datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+        currentTimeStamp = datetime.datetime.now().strftime("%I:%M:%S %p")
 
-        debug("checking for duplicates")
+        debug("adding to dictionary")
         if vendor != "COULDNT-RESOLVE":
-            if mac_address in deviceDictionary:
-                deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
-                deviceDictionary[mac_address]["timesCounted"] += 1
-                if rssi < deviceDictionary[mac_address]["RSSI"]:
-                    deviceDictionary[mac_address]["RSSI"] = rssi
-            else:
-                deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                       "timesCounted":1, "timeFirstSeen": currentTimeStamp,
-                                       "timeLastSeen":"N/A"}
+            if mac_address not in mac_list:
+                if mac_address in deviceDictionary:
+                    deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
+                    deviceDictionary[mac_address]["timesCounted"] += 1
+                    if rssi < deviceDictionary[mac_address]["RSSI"]:
+                        deviceDictionary[mac_address]["RSSI"] = rssi
+                else:
+                    deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
+                                           "timesCounted":1, "timeFirstSeen": currentTimeStamp,
+                                           "timeLastSeen":"N/A"}
         #statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
         stop()
