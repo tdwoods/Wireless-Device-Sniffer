@@ -141,6 +141,7 @@ def packetHandler(pkt):
         debug("adding to dictionary")
         if vendor != "COULDNT-RESOLVE":
             if mac_address not in mac_list:
+                debug("success added")
                 if mac_address in deviceDictionary:
                     deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
                     deviceDictionary[mac_address]["timesCounted"] += 1
