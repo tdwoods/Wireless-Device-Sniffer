@@ -125,6 +125,7 @@ def deviceUpdater():
 def resolveMac(mac):
     global resolveObj
     if mac[:8] in resolveObj:
+        print("hi")
         return resolveObj[mac[:8]]
     return "COULDNT-RESOLVE"
 
@@ -139,6 +140,7 @@ def packetHandler(pkt):
 
         debug("resolving mac")
         vendor = resolveMac(mac_address)
+        print(vendor)
         debug("vendor query done")
 
         debug("setting current time")
