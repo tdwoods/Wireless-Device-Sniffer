@@ -47,20 +47,23 @@ print("[W] Make sure to use an interface in monitor mode!\n")
 externalOptionsSet = False
 if debugMode:
     externalOptionsSet = True
-    print("[I] Showing debug messages...")
+    print("[I] Showing Debug Messages...")
 if externalOptionsSet:
     print()
 
-print("[I] Loading OUI database...")
+print("[I] Loading OUI Database...")
 resolveFile = open("oui.json", "r")
 resolveObj = json.load(resolveFile)
 
-print("[I] Loading MAC database...")
+print("[I] Loading MAC Database...")
 macFile = open("constant_mac_addresses.json","r")
 macList = json.load(macFile)
 
 print("[I] Initiliazing Dictionary")
 deviceDictionary = {}
+
+print("[I] Logging Current Time")
+currentTime = datetime.datetime.now().strftime("%H:%M:%S")
 
 def stop():
     global alreadyStopping
@@ -72,7 +75,7 @@ def stop():
         print("[I] Saving results to DB-packetSniffer.db")
         saveToMYSQL()
         print("[I] Results saved to DB-packetSniffer.db")
-        print("Stopped at: " + datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p"))
+        print("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
         print("[I] packetSniffer stopped.")
         raise SystemExit
 
@@ -97,7 +100,7 @@ def chopping():
             debug("[CHOPPER] IM STOPPING TOO")
             sys.exit()
 
-def deviceUpdating():
+def deviceUpdater():
     while True:
         if not alreadyStopping:
             print("[I] " + str(len(deviceDictionary))+ " devices found")
@@ -109,6 +112,13 @@ def deviceUpdating():
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
 
+# def autoStopper():
+#     for x in range(2):
+#         if x == 0:
+#             time.sleep(3600)
+#         else:
+#             stop()
+
 def resolveMac(mac):
     global resolveObj
     if mac[:8] in resolveObj:
@@ -117,6 +127,7 @@ def resolveMac(mac):
 
 def packetHandler(pkt):
     try:
+        global currentTime
         global deviceDictionary
         # statusWidget(len(deviceDictionary.keys()))
         debug("packetHandler started")
@@ -127,21 +138,21 @@ def packetHandler(pkt):
         vendor = resolveMac(mac_address)
         debug("vendor query done")
 
-        debug("setting timestamp")
-        currentTimeStamp = datetime.datetime.now().strftime("%I:%M:%S %p")
+        debug("setting current time")
+        currentTime = datetime.datetime.now().strftime("%H:%M:%S")
 
         debug("adding to dictionary")
         if vendor != "COULDNT-RESOLVE":
             if mac_address not in macList:
                 debug("success added")
                 if mac_address in deviceDictionary:
-                    deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
+                    deviceDictionary[mac_address]["timeLastSeen"] = currentTime
                     deviceDictionary[mac_address]["timesCounted"] += 1
                     if rssi < deviceDictionary[mac_address]["RSSI"]:
                         deviceDictionary[mac_address]["RSSI"] = rssi
                 else:
                     deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                           "timesCounted":1, "timeFirstSeen": currentTimeStamp,
+                                           "timesCounted":1, "timeFirstSeen": currentTime,
                                            "timeLastSeen":"N/A"}
         #statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
@@ -155,7 +166,7 @@ def saveToMYSQL():
     try:
         global deviceDictionary
         debug("saveToMYSQL called")
-        db = sqlite3.connect("DB-packetSniffer.db")
+        db = sqlite3.connect(str(datetime.date.today()) + ".db")
         cursor = db.cursor()
         for m in deviceDictionary:
             r = deviceDictionary[m]["RSSI"]
@@ -198,15 +209,22 @@ def main():
     chopper.start()
     #statusWidget(len(deviceDictionary.keys()))
 
-    print("[I] Starting deviceUpdating in a new thread...")
+    print("[I] Starting deviceUpdater in a new thread...")
     path = os.path.realpath(__file__)
-    updater = threading.Thread(target=deviceUpdating)
+    updater = threading.Thread(target=deviceUpdater)
     updater.daemon = True
     updater.start()
 
+    # print("[I] Starting autoStopper in a new thread...")
+    # path = os.path.realpath(__file__)
+    # stopper = threading.Thread(target=autoStopper)
+    # stopper.daemon = True
+    # stopper.start()
+
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
-    while True:
+    stopTime = datetime.time(hour=22,minute=0,second=0)
+    while currentTime < stopTime:
         try:
             capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
             capture.apply_on_packets(packetHandler)
