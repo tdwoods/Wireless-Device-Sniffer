@@ -23,7 +23,7 @@ except:
     raise SystemExit
 
 parser = argparse.ArgumentParser(
-    usage="probeSniffer.py [monitor-mode-interface] [options]")
+    usage="packetSniffer.py [monitor-mode-interface] [options]")
 parser.add_argument(
     "interface", help="interface (in monitor mode) for capturing the packets")
 parser.add_argument("--debug", action="store_true", help="turn debug mode on")
@@ -40,15 +40,7 @@ def restart_line():
     sys.stdout.write("\r")
     sys.stdout.flush()
 
-header = """
- ____  ____   ___  ____    ___ _________  ____ _____ _____  ___ ____
-|    \|    \ /   \|    \  /  _/ ___|    \|    |     |     |/  _|    \\
-|  o  |  D  |     |  o  )/  [(   \_|  _  ||  ||   __|   __/  [_|  D  )
-|   _/|    /|  O  |     |    _\__  |  |  ||  ||  |_ |  |_|    _|    /
-|  |  |    \|     |  O  |   [_/  \ |  |  ||  ||   _]|   _|   [_|    \\
-|  |  |  .  |     |     |     \    |  |  ||  ||  |  |  | |     |  .  \\
-|__|  |__|\_|\___/|_____|_____|\___|__|__|____|__|  |__| |_____|__|\__|
-"""
+header = "Welcome to Packet Sniffer"
 print(header)
 print("[W] Make sure to use an interface in monitor mode!\n")
 
@@ -64,8 +56,8 @@ resolveFile = open("oui.json", "r")
 resolveObj = json.load(resolveFile)
 
 print("[I] Loading MAC database...")
-constant_mac = open("constant_mac_addresses.json","r")
-mac_list = json.load(constant_mac)
+macFile = open("constant_mac_addresses.json","r")
+macList = json.load(macFile)
 
 print("[I] Initiliazing Dictionary")
 deviceDictionary = {}
@@ -77,11 +69,11 @@ def stop():
         debug("setting stopping to true")
         alreadyStopping = True
         print("\n[I] Stopping...")
-        print("[I] Saving results to DB-probeSniffer.db")
+        print("[I] Saving results to DB-packetSniffer.db")
         saveToMYSQL()
-        print("[I] Results saved to DB-probeSniffer.db")
+        print("[I] Results saved to DB-packetSniffer.db")
         print("Stopped at: " + datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p"))
-        print("[I] probeSniffer stopped.")
+        print("[I] packetSniffer stopped.")
         raise SystemExit
 
 
@@ -95,8 +87,8 @@ def chopping():
         if not alreadyStopping:
             channels = [1, 6, 11]
             for channel in channels:
-                os.system("iwconfig " + monitor_iface + " channel " +
-                          str(channel) + " > /dev/null 2>&1")
+                subprocess.call("iwconfig " + monitor_iface + " channel " +
+                           str(channel) + " > /dev/null 2>&1", shell=True)
                 debug("[CHOPPER] HI IM RUNNING THIS COMMAND: " +
                       "iwconfig " + monitor_iface + " channel " + str(channel))
                 debug("[CHOPPER] HI I CHANGED CHANNEL TO " + str(channel))
@@ -112,7 +104,7 @@ def deviceUpdating():
             restart_line()
             sys.stdout.flush()
             saveToMYSQL()
-            time.sleep(600)
+            time.sleep(60)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
@@ -120,7 +112,7 @@ def deviceUpdating():
 def resolveMac(mac):
     global resolveObj
     if mac[:8] in resolveObj:
-        return resolveObj[mac]
+        return resolveObj[mac[:8]]
     return "COULDNT-RESOLVE"
 
 def packetHandler(pkt):
@@ -140,7 +132,7 @@ def packetHandler(pkt):
 
         debug("adding to dictionary")
         if vendor != "COULDNT-RESOLVE":
-            if mac_address not in mac_list:
+            if mac_address not in macList:
                 debug("success added")
                 if mac_address in deviceDictionary:
                     deviceDictionary[mac_address]["timeLastSeen"] = currentTimeStamp
@@ -163,7 +155,7 @@ def saveToMYSQL():
     try:
         global deviceDictionary
         debug("saveToMYSQL called")
-        db = sqlite3.connect("DB-probeSniffer.db")
+        db = sqlite3.connect("DB-packetSniffer.db")
         cursor = db.cursor()
         for m in deviceDictionary:
             r = deviceDictionary[m]["RSSI"]
@@ -171,7 +163,7 @@ def saveToMYSQL():
             tc = deviceDictionary[m]["timesCounted"]
             tfs = deviceDictionary[m]["timeFirstSeen"]
             tls = deviceDictionary[m]["timeLastSeen"]
-            cursor.execute("INSERT OR REPLACE INTO probeSniffer (mac_address, vendor, rssi, timesCounted, timeFirstSeen, timeLastSeen) VALUES (?,?,?,?,?,?)", (m,v,r,tc,tfs,tls))
+            cursor.execute("INSERT OR REPLACE INTO packetSniffer (mac_address, vendor, rssi, timesCounted, timeFirstSeen, timeLastSeen) VALUES (?,?,?,?,?,?)", (m,v,r,tc,tfs,tls))
         db.commit()
         db.close()
     except:
@@ -185,14 +177,14 @@ def main():
     print("[I] Setting up SQLite...")
 
     try:
-        setupDB = sqlite3.connect("DB-probeSniffer.db")
+        setupDB = sqlite3.connect("DB-packetSniffer.db")
     except:
         print("\n[!] Cant connect to database. Permission error?\n")
         exit()
     setupCursor = setupDB.cursor()
-    setupCursor.execute("DROP TABLE IF EXISTS probeSniffer")
+    setupCursor.execute("DROP TABLE IF EXISTS packetSniffer")
     setupCursor.execute(
-        """CREATE TABLE probeSniffer
+        """CREATE TABLE packetSniffer
             (mac_address VARCHAR(50) primary key, vendor VARCHAR(50),
              rssi INT, timesCounted INT, timeFirstSeen VARCHAR(50),
              timeLastSeen VARCHAR(50))""")
