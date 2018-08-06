@@ -72,9 +72,9 @@ def stop():
         debug("setting stopping to true")
         alreadyStopping = True
         print("\n[I] Stopping...")
-        print("[I] Saving results to DB-packetSniffer.db")
+        print("[I] Saving results to " + str(datetime.date.today()) + ".db")
         saveToMYSQL()
-        print("[I] Results saved to DB-packetSniffer.db")
+        print("[I] Results saved to " + str(datetime.date.today()) + ".db")
         print("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
         print("[I] packetSniffer stopped.")
         raise SystemExit
@@ -191,7 +191,7 @@ def main():
     print("[I] Setting up SQLite...")
 
     try:
-        setupDB = sqlite3.connect("DB-packetSniffer.db")
+        setupDB = sqlite3.connect(str(datetime.date.today()) + ".db")
     except:
         print("\n[!] Cant connect to database. Permission error?\n")
         exit()
@@ -227,7 +227,7 @@ def main():
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
     stopDate = datetime.date.today()
-    stopTime = datetime.time(hour=21,minute=15,second=0)
+    stopTime = datetime.time(hour=21,minute=30,second=0)
     stopTime = datetime.datetime.combine(stopDate,stopTime)
     while currentTime < stopTime:
         try:
@@ -243,6 +243,7 @@ def main():
                 time.sleep(5)
             except:
                 stop()
+    stop()
 
 if __name__ == "__main__":
     main()
