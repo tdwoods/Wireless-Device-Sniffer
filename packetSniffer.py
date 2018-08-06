@@ -63,7 +63,7 @@ print("[I] Initiliazing Dictionary")
 deviceDictionary = {}
 
 print("[I] Logging Current Time")
-currentTime = datetime.datetime.now().strftime("%H:%M:%S")
+currentTime = datetime.datetime.now()
 
 def stop():
     global alreadyStopping
@@ -141,20 +141,20 @@ def packetHandler(pkt):
         debug("vendor query done")
 
         debug("setting current time")
-        currentTime = datetime.datetime.now().strftime("%H:%M:%S")
+        currentTime = datetime.datetime.now()
 
         debug("adding to dictionary")
         if vendor != "COULDNT-RESOLVE":
             if mac_address not in macList:
                 debug("success added")
                 if mac_address in deviceDictionary:
-                    deviceDictionary[mac_address]["timeLastSeen"] = currentTime
+                    deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%H:%M:%S")
                     deviceDictionary[mac_address]["timesCounted"] += 1
                     if rssi < deviceDictionary[mac_address]["RSSI"]:
                         deviceDictionary[mac_address]["RSSI"] = rssi
                 else:
                     deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                           "timesCounted":1, "timeFirstSeen": currentTime,
+                                           "timesCounted":1, "timeFirstSeen": currentTime.strftime("%H:%M:%S"),
                                            "timeLastSeen":"N/A"}
         #statusWidget(len(deviceDictionary.keys()))
     except KeyboardInterrupt:
