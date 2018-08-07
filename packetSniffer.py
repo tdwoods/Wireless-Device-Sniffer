@@ -67,7 +67,7 @@ currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
 stopDate = datetime.date.today()
-stopTime = datetime.time(hour=22,minute=41,second=0)
+stopTime = datetime.time(hour=14,minute=7,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
 
 def stop():
@@ -82,7 +82,7 @@ def stop():
         print("[I] Results saved to " + str(datetime.date.today()) + ".db")
         print("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
         print("[I] packetSniffer stopped.")
-        exit()
+        raise SystemExit
 
 
 def debug(msg):
@@ -151,7 +151,7 @@ def packetHandler(pkt):
 
         debug("checking current time against stop time")
         if currentTime > stopTime:
-            stop()
+            raise pyshark.StopCapture
         debug("adding to dictionary")
         # if vendor != "COULDNT-RESOLVE":
         #     if mac_address not in macList:
@@ -240,6 +240,8 @@ def main():
             capture.apply_on_packets(packetHandler)
         except KeyboardInterrupt:
             stop()
+        except pyshark.StopCapture:
+            stop()
         except:
             print("[!] An error occurred. Debug:")
             print(traceback.format_exc())
@@ -248,6 +250,6 @@ def main():
                 time.sleep(5)
             except:
                 stop()
-
+    stop()
 if __name__ == "__main__":
     main()
