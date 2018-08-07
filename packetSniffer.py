@@ -68,8 +68,9 @@ currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
 stopDate = datetime.date.today()
-stopTime = datetime.time(hour=14,minute=12,second=0)
+stopTime = datetime.time(hour=22,minute=0,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
+
 
 def stop():
     global alreadyStopping
@@ -121,13 +122,6 @@ def deviceUpdater():
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
 
-# def autoStopper():
-#     for x in range(2):
-#         if x == 0:
-#             time.sleep(3600)
-#         else:
-#             stop()
-
 def resolveMac(mac):
     global resolveObj
     if mac[:8] in resolveObj:
@@ -138,7 +132,7 @@ def packetHandler(pkt):
     try:
         global currentTime
         global deviceDictionary
-        # statusWidget(len(deviceDictionary.keys()))
+
         debug("packetHandler started")
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
@@ -150,10 +144,6 @@ def packetHandler(pkt):
         debug("setting current time")
         currentTime = datetime.datetime.now()
 
-        # debug("checking current time against stop time")
-        # if currentTime > stopTime:
-        #     print("hi")
-        #     raise pyshark.StopCapture()
         debug("adding to dictionary")
         # if vendor != "COULDNT-RESOLVE":
         #     if mac_address not in macList:
@@ -228,35 +218,27 @@ def main():
     updater.daemon = True
     updater.start()
 
-    # print("[I] Starting autoStopper in a new thread...")
-    # path = os.path.realpath(__file__)
-    # stopper = threading.Thread(target=autoStopper)
-    # stopper.daemon = True
-    # stopper.start()
-
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
-    # while currentTime < stopTime:
-    #     try:
-    #         capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
-    #         capture.apply_on_packets(packetHandler)
-    #     except KeyboardInterrupt:
-    #         stop()
-    #     except pyshark.StopCapture:
-    #         stop()
-    #     except:
-    #         print("[!] An error occurred. Debug:")
-    #         print(traceback.format_exc())
-    #         print("[!] Restarting in 5 sec... Press CTRL + C to stop.")
-    #         try:
-    #             time.sleep(5)
-    #         except:
-    #             stop()
-    try:
-        capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
-        capture.apply_on_packets(packetHandler, timeout = 10)
-    except concurrent.futures.TimeoutError:
-        stop()
+    while True:
+        try:
+            timeoutPeriod = (stopTime - currentTime).total_seconds()
+            capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
+            capture.apply_on_packets(packetHandler, timeout = timeoutPeriod)
+        except KeyboardInterrupt:
+            stop()
+        except concurrent.futures.TimeoutError:
+            stop()
+        except:
+            print("[!] An error occurred. Debug:")
+            print(traceback.format_exc())
+            print("[!] Restarting in 5 sec... Press CTRL + C to stop.")
+            try:
+                time.sleep(5)
+            except:
+                stop()
+
+
 
 
 if __name__ == "__main__":
