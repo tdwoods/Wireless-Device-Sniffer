@@ -235,22 +235,26 @@ def main():
 
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
-    while True:
-        try:
-            capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
-            capture.apply_on_packets(packetHandler)
-        except KeyboardInterrupt:
-            stop()
-        except pyshark.StopCapture:
-            stop()
-        except:
-            print("[!] An error occurred. Debug:")
-            print(traceback.format_exc())
-            print("[!] Restarting in 5 sec... Press CTRL + C to stop.")
-            try:
-                time.sleep(5)
-            except:
-                stop()
+    try:
+        capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
+
+        capture.apply_on_packets(packetHandler, timeout = 10)
+    # while currentTime < stopTime:
+    #     try:
+    #         capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
+    #         capture.apply_on_packets(packetHandler)
+    #     except KeyboardInterrupt:
+    #         stop()
+    #     except pyshark.StopCapture:
+    #         stop()
+    #     except:
+    #         print("[!] An error occurred. Debug:")
+    #         print(traceback.format_exc())
+    #         print("[!] Restarting in 5 sec... Press CTRL + C to stop.")
+    #         try:
+    #             time.sleep(5)
+    #         except:
+    #             stop()
     stop()
 if __name__ == "__main__":
     main()
