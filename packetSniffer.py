@@ -235,9 +235,6 @@ def main():
 
     print("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
-    try:
-        capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
-        capture.apply_on_packets(packetHandler, timeout = 10)
     # while currentTime < stopTime:
     #     try:
     #         capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
@@ -254,5 +251,10 @@ def main():
     #             time.sleep(5)
     #         except:
     #             stop()
+    try:
+        capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
+        capture.apply_on_packets(packetHandler, timeout = 10)
+
+
 if __name__ == "__main__":
     main()
