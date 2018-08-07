@@ -56,9 +56,9 @@ print("[I] Loading OUI Database...")
 resolveFile = open("oui.json", "r")
 resolveObj = json.load(resolveFile)
 
-# print("[I] Loading MAC Database...")
-# macFile = open("constant_mac_addresses.json","r")
-# macList = json.load(macFile)
+print("[I] Loading MAC Database...")
+macFile = open("constant_mac_addresses.json","r")
+macList = json.load(macFile)
 
 print("[I] Initiliazing Dictionary")
 deviceDictionary = {}
@@ -67,8 +67,8 @@ print("[I] Logging Current Time")
 currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
-stopDate = datetime.date.today()
-stopTime = datetime.time(hour=22,minute=0,second=0)
+stopDate = datetime.date.today() + 1
+stopTime = datetime.time(hour=11,minute=0,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
 
 
@@ -79,11 +79,27 @@ def stop():
         debug("setting stopping to true")
         alreadyStopping = True
         print("\n[I] Stopping...")
-        print("[I] Saving results to " + str(datetime.date.today()) + ".db")
+        print("[I] Saving results to overnight_capture.db")
         saveToMYSQL()
-        print("[I] Results saved to " + str(datetime.date.today()) + ".db")
-        print("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
+        print("[I] Results saved to overnight_capture.db")
+        print("Stopped at: " + datetime.datetime.now().strftime("%y:%m:%d %H:%M:%S"))
         print("[I] packetSniffer stopped.")
+
+
+        constant_devices = []
+        db = sqlite3.connect("overnight_capture.db")
+        cur = db.cursor()
+        cur.execute("SELECT * FROM packetSniffer")
+        rows = cur.fetchall()
+        for row in rows:
+            if row[3] != 1:
+                startTime = datetime.datetime.strptime(row[5],"%Y-%m-%d %H:%M:%S")
+                stopTime = datetime.datetime.strptime(row[4], "%Y-%m-%d %H:%M:%S")
+                if ((stopTime - startTime).total_seconds() / 3600) > 6:
+                    constant_devices.append(str(row[0]))
+
+        file = open("constant_devices.json","w")
+        file.write(json.dumps(constant_devices))
         raise SystemExit
 
 
@@ -125,7 +141,7 @@ def deviceUpdater():
 def resolveMac(mac):
     global resolveObj
     if mac[:8].upper() in resolveObj:
-        return resolveObj[mac[:8].upper() ]
+        return resolveObj[mac[:8].upper()]
     return "COULDNT-RESOLVE"
 
 def packetHandler(pkt):
@@ -149,13 +165,13 @@ def packetHandler(pkt):
         #     if mac_address not in macList:
         #         debug("success added")
         if mac_address in deviceDictionary:
-            deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%H:%M:%S")
+            deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%y:%m:%d %H:%M:%S")
             deviceDictionary[mac_address]["timesCounted"] += 1
             if rssi < deviceDictionary[mac_address]["RSSI"]:
                 deviceDictionary[mac_address]["RSSI"] = rssi
         else:
             deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                   "timesCounted":1, "timeFirstSeen": currentTime.strftime("%H:%M:%S"),
+                                   "timesCounted":1, "timeFirstSeen": currentTime.strftime("%y:%m:%d %H:%M:%S"),
                                    "timeLastSeen":"N/A"}
     except KeyboardInterrupt:
         stop()
@@ -167,7 +183,7 @@ def saveToMYSQL():
     try:
         global deviceDictionary
         debug("saveToMYSQL called")
-        db = sqlite3.connect(str(datetime.date.today()) + ".db")
+        db = sqlite3.connect("overnight_capture.db")
         cursor = db.cursor()
         for m in deviceDictionary:
             r = deviceDictionary[m]["RSSI"]
@@ -189,7 +205,7 @@ def main():
     print("[I] Setting up SQLite...")
 
     try:
-        setupDB = sqlite3.connect(str(datetime.date.today()) + ".db")
+        setupDB = sqlite3.connect("overnight_capture.db")
     except:
         print("\n[!] Cant connect to database. Permission error?\n")
         exit()
