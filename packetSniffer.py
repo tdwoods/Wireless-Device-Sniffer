@@ -149,10 +149,10 @@ def packetHandler(pkt):
         debug("setting current time")
         currentTime = datetime.datetime.now()
 
-        debug("checking current time against stop time")
-        if currentTime > stopTime:
-            print("hi")
-            raise pyshark.StopCapture()
+        # debug("checking current time against stop time")
+        # if currentTime > stopTime:
+        #     print("hi")
+        #     raise pyshark.StopCapture()
         debug("adding to dictionary")
         # if vendor != "COULDNT-RESOLVE":
         #     if mac_address not in macList:
@@ -237,7 +237,6 @@ def main():
 
     try:
         capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
-
         capture.apply_on_packets(packetHandler, timeout = 10)
     # while currentTime < stopTime:
     #     try:
@@ -255,6 +254,5 @@ def main():
     #             time.sleep(5)
     #         except:
     #             stop()
-    stop()
 if __name__ == "__main__":
     main()
