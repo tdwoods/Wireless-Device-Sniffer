@@ -251,8 +251,11 @@ def main():
     #             time.sleep(5)
     #         except:
     #             stop()
-    capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
-    capture.apply_on_packets(packetHandler, timeout = 10)
+    try:
+        capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
+        capture.apply_on_packets(packetHandler, timeout = 10)
+    except concurrent.futures.TimeoutError:
+        stop()
 
 
 if __name__ == "__main__":
