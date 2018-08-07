@@ -67,7 +67,7 @@ currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
 stopDate = datetime.date.today()
-stopTime = datetime.time(hour=14,minute=7,second=0)
+stopTime = datetime.time(hour=14,minute=10,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
 
 def stop():
@@ -151,6 +151,7 @@ def packetHandler(pkt):
 
         debug("checking current time against stop time")
         if currentTime > stopTime:
+            print("hi")
             raise pyshark.StopCapture
         debug("adding to dictionary")
         # if vendor != "COULDNT-RESOLVE":
