@@ -222,7 +222,7 @@ def main():
         try:
             timeoutPeriod = (stopTime - currentTime).total_seconds()
             capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
-            capture.apply_on_packets(packetHandler, timeout = timeoutPeriod)
+            capture.apply_on_packets(packetHandler, timeout = 30)
         except KeyboardInterrupt:
             stop()
         except concurrent.futures.TimeoutError:
