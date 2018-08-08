@@ -63,7 +63,7 @@ print("[I] Logging Current Time")
 currentTime = datetime.datetime.now()
 
 print("[I] Setting Stop Time")
-stopDate = datetime.date.today() + 1
+stopDate = datetime.date.today() + datetime.timedelta(days = 1)
 stopTime = datetime.time(hour=11,minute=0,second=0)
 stopTime = datetime.datetime.combine(stopDate,stopTime)
 
