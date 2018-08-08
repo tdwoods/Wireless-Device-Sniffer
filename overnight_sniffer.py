@@ -56,10 +56,6 @@ print("[I] Loading OUI Database...")
 resolveFile = open("oui.json", "r")
 resolveObj = json.load(resolveFile)
 
-print("[I] Loading MAC Database...")
-macFile = open("constant_mac_addresses.json","r")
-macList = json.load(macFile)
-
 print("[I] Initiliazing Dictionary")
 deviceDictionary = {}
 
