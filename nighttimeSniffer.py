@@ -103,6 +103,7 @@ def stop():
         file = open("constant_devices.json","w")
         file.write(json.dumps(constant_devices))
         file.close()
+        subprocess.call(["rm", 'overnightCapture.db'], shell = True)
         print("Stopped at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         print("[I] packetSniffer stopped.")
         raise SystemExit
