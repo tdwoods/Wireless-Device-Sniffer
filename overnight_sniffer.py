@@ -82,7 +82,7 @@ def stop():
         print("[I] Saving results to overnight_capture.db")
         saveToMYSQL()
         print("[I] Results saved to overnight_capture.db")
-        print("Stopped at: " + datetime.datetime.now().strftime("%y:%m:%d %H:%M:%S"))
+        print("Stopped at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         print("[I] packetSniffer stopped.")
 
 
@@ -165,13 +165,13 @@ def packetHandler(pkt):
         #     if mac_address not in macList:
         #         debug("success added")
         if mac_address in deviceDictionary:
-            deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%y:%m:%d %H:%M:%S")
+            deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%Y-%m-%d %H:%M:%S")
             deviceDictionary[mac_address]["timesCounted"] += 1
             if rssi < deviceDictionary[mac_address]["RSSI"]:
                 deviceDictionary[mac_address]["RSSI"] = rssi
         else:
             deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                   "timesCounted":1, "timeFirstSeen": currentTime.strftime("%y:%m:%d %H:%M:%S"),
+                                   "timesCounted":1, "timeFirstSeen": currentTime.strftime("%Y-%m-%d %H:%M:%S"),
                                    "timeLastSeen":"N/A"}
     except KeyboardInterrupt:
         stop()
