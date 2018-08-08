@@ -78,11 +78,16 @@ def stop():
         print("[I] Saving results to overnight_capture.db")
         saveToMYSQL()
         print("[I] Results saved to overnight_capture.db")
-        print("Stopped at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        print("[I] packetSniffer stopped.")
 
+        print("[I] Trying to read from capture_devices.json")
+        try:
+            file = open("constant_devices.json", "r")
+            constant_devices = json.load(file)
+            file.close()
+        except:
+            constant_devices = []
 
-        constant_devices = []
+        print("[I] Updating list of constant_devices")
         db = sqlite3.connect("overnight_capture.db")
         cur = db.cursor()
         cur.execute("SELECT * FROM packetSniffer")
@@ -92,10 +97,14 @@ def stop():
                 startTime = datetime.datetime.strptime(row[5],"%Y-%m-%d %H:%M:%S")
                 stopTime = datetime.datetime.strptime(row[4], "%Y-%m-%d %H:%M:%S")
                 if ((stopTime - startTime).total_seconds() / 3600) > 6:
-                    constant_devices.append(str(row[0]))
+                    if str(row[0]) not in constant_devices:
+                        constant_devices.append(str(row[0]))
 
         file = open("constant_devices.json","w")
         file.write(json.dumps(constant_devices))
+        file.close()
+        print("Stopped at: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        print("[I] packetSniffer stopped.")
         raise SystemExit
 
 

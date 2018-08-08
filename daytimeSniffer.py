@@ -56,9 +56,13 @@ print("[I] Loading OUI Database...")
 resolveFile = open("oui.json", "r")
 resolveObj = json.load(resolveFile)
 
-# print("[I] Loading MAC Database...")
-# macFile = open("constant_mac_addresses.json","r")
-# macList = json.load(macFile)
+print("[I] Loading MAC Database...")
+try:
+    macFile = open("constant_devices.json","r")
+    macList = json.load(macFile)
+except:
+    print("[I] Couldn't load mac database")
+    macList = []
 
 print("[I] Initiliazing Dictionary")
 deviceDictionary = {}
@@ -145,18 +149,16 @@ def packetHandler(pkt):
         currentTime = datetime.datetime.now()
 
         debug("adding to dictionary")
-        # if vendor != "COULDNT-RESOLVE":
-        #     if mac_address not in macList:
-        #         debug("success added")
-        if mac_address in deviceDictionary:
-            deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%H:%M:%S")
-            deviceDictionary[mac_address]["timesCounted"] += 1
-            if rssi < deviceDictionary[mac_address]["RSSI"]:
-                deviceDictionary[mac_address]["RSSI"] = rssi
-        else:
-            deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
-                                   "timesCounted":1, "timeFirstSeen": currentTime.strftime("%H:%M:%S"),
-                                   "timeLastSeen":"N/A"}
+        if mac_address not in macList:
+            if mac_address in deviceDictionary:
+                deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%H:%M:%S")
+                deviceDictionary[mac_address]["timesCounted"] += 1
+                if rssi < deviceDictionary[mac_address]["RSSI"]:
+                    deviceDictionary[mac_address]["RSSI"] = rssi
+            else:
+                deviceDictionary[mac_address] = {"RSSI":rssi, "Vendor":vendor,
+                                       "timesCounted":1, "timeFirstSeen": currentTime.strftime("%H:%M:%S"),
+                                       "timeLastSeen":"N/A"}
     except KeyboardInterrupt:
         stop()
     except:
@@ -208,7 +210,6 @@ def main():
     chopper = threading.Thread(target=chopping)
     chopper.daemon = True
     chopper.start()
-    #statusWidget(len(deviceDictionary.keys()))
 
     print("[I] Starting deviceUpdater in a new thread...")
     path = os.path.realpath(__file__)
