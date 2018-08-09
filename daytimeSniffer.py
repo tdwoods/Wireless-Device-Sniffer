@@ -144,7 +144,7 @@ def packetHandler(pkt):
 
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
-        if mac[:8] == "da:a1:19":
+        if mac_address[:8] == "da:a1:19":
             print("---------------------")
             print(pkt.layers[3].tag_oui)
             print(pkt.layers[3].tag_vendor_data)
