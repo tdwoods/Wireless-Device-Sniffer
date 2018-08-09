@@ -106,10 +106,10 @@ def chopping():
         if not alreadyStopping:
             channels = [1, 6, 11]
             for channel in channels:
-                subprocess.call("iwconfig " + monitor_iface + " channel " +
-                           str(channel) + " > /dev/null 2>&1", shell=True)
+                subprocess.call("iwconfig " + interfaceName + " channel " +
+                           str(channel) + " > /dev/null 2>&1", shell=False)
                 debug("[CHOPPER] HI IM RUNNING THIS COMMAND: " +
-                      "iwconfig " + monitor_iface + " channel " + str(channel))
+                      "iwconfig " + interfaceName + " channel " + str(channel))
                 debug("[CHOPPER] HI I CHANGED CHANNEL TO " + str(channel))
                 time.sleep(5)
         else:

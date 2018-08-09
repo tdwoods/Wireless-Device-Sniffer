@@ -38,7 +38,7 @@ print("Welcome to Nighttime Sniffer")
 
 print("[I] Selecting correct interface")
 try:
-    wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=True)
+    wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=False)
     wirelessInterfaces = str(wirelessInterfaces).split("*")
     wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
     interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()
@@ -123,10 +123,10 @@ def chopping():
         if not alreadyStopping:
             channels = [1, 6, 11]
             for channel in channels:
-                subprocess.call("iwconfig " + monitor_iface + " channel " +
+                subprocess.call("iwconfig " + interfaceName + " channel " +
                            str(channel) + " > /dev/null 2>&1", shell=True)
                 debug("[CHOPPER] HI IM RUNNING THIS COMMAND: " +
-                      "iwconfig " + monitor_iface + " channel " + str(channel))
+                      "iwconfig " + interfaceName + " channel " + str(channel))
                 debug("[CHOPPER] HI I CHANGED CHANNEL TO " + str(channel))
                 time.sleep(5)
         else:
