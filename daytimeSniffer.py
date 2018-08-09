@@ -150,7 +150,6 @@ def packetHandler(pkt):
         # file.write("-----------------------------------")
         # file.close()
         print("---------------------")
-        print(pkt.layers[3].tag_vendor_oui)
         print(pkt.layers[3].tag_oui)
         print(pkt.layers[3].tag_vendor_data)
         print(pkt.layers[3].vs_pren_type)
