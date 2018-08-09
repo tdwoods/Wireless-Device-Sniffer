@@ -38,7 +38,7 @@ print("Welcome to Nighttime Sniffer")
 
 print("[I] Selecting correct interface")
 try:
-    wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=False)
+    wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=True)
     wirelessInterfaces = str(wirelessInterfaces).split("*")
     wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
     interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()

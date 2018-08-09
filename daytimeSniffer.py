@@ -107,7 +107,7 @@ def chopping():
             channels = [1, 6, 11]
             for channel in channels:
                 subprocess.call("iwconfig " + interfaceName + " channel " +
-                           str(channel) + " > /dev/null 2>&1", shell=False)
+                           str(channel) + " > /dev/null 2>&1", shell=True)
                 debug("[CHOPPER] HI IM RUNNING THIS COMMAND: " +
                       "iwconfig " + interfaceName + " channel " + str(channel))
                 debug("[CHOPPER] HI I CHANGED CHANNEL TO " + str(channel))
