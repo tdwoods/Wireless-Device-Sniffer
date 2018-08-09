@@ -29,7 +29,6 @@ parser.add_argument("--debug", action="store_true", help="turn debug mode on")
 
 args = parser.parse_args()
 debugMode = args.debug
-monitor_iface = args.interface
 alreadyStopping = False
 
 def restartLine():
