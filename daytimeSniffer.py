@@ -142,20 +142,13 @@ def packetHandler(pkt):
         global currentTime
         global deviceDictionary
 
-        # file = open("fields_attr.txt", "a")
-        # file.write(json.dumps(pkt.layers[0].field_names))
-        # file.write(json.dumps(pkt.layers[1].field_names))
-        # file.write(json.dumps(pkt.layers[2].field_names))
-        # file.write(json.dumps(pkt.layers[3].field_names))
-        # file.write("-----------------------------------")
-        # file.close()
-        print("---------------------")
-        print(pkt.layers[3].tag_oui)
-        print(pkt.layers[3].tag_vendor_data)
-        print(pkt.layers[3].vs_pren_type)
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
-
+        if mac[:8] == "da:a1:19":
+            print("---------------------")
+            print(pkt.layers[3].tag_oui)
+            print(pkt.layers[3].tag_vendor_data)
+            print(pkt.layers[3].vs_pren_type)
         debug("resolving mac")
         vendor = resolveMac(mac_address)
         debug("vendor query done")
