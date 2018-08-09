@@ -149,9 +149,16 @@ def packetHandler(pkt):
         # file.write(json.dumps(pkt.layers[3].field_names))
         # file.write("-----------------------------------")
         # file.close()
+        print(pkt.layers[2].fc)
+        print(pkt.layers[2].fc_type)
+        print(pkt.layers[2].fc_type_subtype)
+        print(pkt.layers[2].fc_subtype)
+        print("---------------------")
+        print(pkt.layers[3].tag)
         print(pkt.layers[3].tag_vendor_oui)
-        print(pkt.layers[3].tag_vendor_oui)
+        print(pkt.layers[3].tag_oui)
         print(pkt.layers[3].tag_vendor_data)
+        print(pkt.layers[3].vs_pren_type)
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
 
