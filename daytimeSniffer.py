@@ -142,7 +142,7 @@ def packetHandler(pkt):
         global currentTime
         global deviceDictionary
 
-        print(pkt.wlan_mgt.field_names)
+        print(pkt.layers)
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
 
