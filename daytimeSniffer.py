@@ -144,11 +144,7 @@ def packetHandler(pkt):
 
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
-        if mac_address[:8] == "da:a1:19":
-            print("---------------------")
-            print(pkt.layers[3].tag_oui)
-            print(pkt.layers[3].tag_vendor_data)
-            print(pkt.layers[3].vs_pren_type)
+        pkt.pretty_print()
         debug("resolving mac")
         vendor = resolveMac(mac_address)
         debug("vendor query done")
