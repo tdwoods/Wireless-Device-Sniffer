@@ -23,27 +23,31 @@ except:
             "and try again.")
     raise SystemExit
 
-parser = argparse.ArgumentParser(
-    usage="packetSniffer.py [monitor-mode-interface] [options]")
-parser.add_argument(
-    "interface", help="interface (in monitor mode) for capturing the packets")
+parser = argparse.ArgumentParser(usage="packetSniffer.py [options]")
 parser.add_argument("--debug", action="store_true", help="turn debug mode on")
 
-if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit(1)
 args = parser.parse_args()
 debugMode = args.debug
-monitor_iface = args.interface
 alreadyStopping = False
 
 def restartLine():
     sys.stdout.write("\r")
     sys.stdout.flush()
 
-header = "Welcome to Packet Sniffer"
-print(header)
-print("[W] Make sure to use an interface in monitor mode!\n")
+print("Welcome to Nighttime Sniffer")
+
+print("[I] Selecting correct interface")
+try:
+    wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=True)
+    wirelessInterfaces = str(wirelessInterfaces).split("*")
+    wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
+    interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()
+    if "mon" not in interfaceName:
+        suprocess.call("airmon-ng start " + interfaceName, shell=True)
+        interfaceName += "mon"
+except:
+    print("[I] Error setting up interface. Are you sure adapter is plugged in?")
+    sys.exit(1)
 
 externalOptionsSet = False
 if debugMode:
@@ -243,7 +247,7 @@ def main():
     while True:
         try:
             timeoutPeriod = (stopTime - currentTime).total_seconds()
-            capture = pyshark.LiveCapture(interface=monitor_iface, bpf_filter="type mgt subtype probe-req")
+            capture = pyshark.LiveCapture(interface=interfaceName, bpf_filter="type mgt subtype probe-req")
             capture.apply_on_packets(packetHandler, timeout = timeoutPeriod)
         except KeyboardInterrupt:
             stop()
