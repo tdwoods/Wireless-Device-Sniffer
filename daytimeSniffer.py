@@ -142,7 +142,12 @@ def packetHandler(pkt):
         global currentTime
         global deviceDictionary
 
-        print(pkt.layers)
+        file = open("fields_attr.txt", "a")
+        file.write(json.dumps(pkt.layers[0].field_names))
+        file.write(json.dumps(pkt.layers[1].field_names))
+        file.write(json.dumps(pkt.layers[2].field_names))
+        file.write(json.dumps(pkt.layers[3].field_names))
+        file.write("-----------------------------------")
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
 
