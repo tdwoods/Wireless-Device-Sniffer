@@ -142,10 +142,7 @@ def packetHandler(pkt):
         global currentTime
         global deviceDictionary
 
-        file = open("field_names.txt", "a")
-        file.write(pkt.wlan.field_names)
-        file.close()
-        debug("packetHandler started")
+        print(pkt.wlan.field_names)
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
 
