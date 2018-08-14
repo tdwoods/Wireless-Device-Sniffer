@@ -246,7 +246,10 @@ def main():
 
     while True:
         try:
-            timeoutPeriod = (stopTime - currentTime).total_seconds()
+            tempDate = datetime.date.today()
+            tempTime = datetime.time(hour=21,minute=55,second=0)
+            tempTime = datetime.datetime.combine(tempDate,tempTime)
+            timeoutPeriod = (tempTime - currentTime).total_seconds()
             capture = pyshark.LiveCapture(interface=interfaceName, bpf_filter="type mgt subtype probe-req")
             capture.apply_on_packets(packetHandler, timeout = timeoutPeriod)
         except KeyboardInterrupt:
