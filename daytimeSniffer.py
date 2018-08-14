@@ -44,6 +44,7 @@ try:
     wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
     interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()
     if "mon" not in interfaceName:
+        print("hi")
         suprocess.call("sudo airmon-ng start " + interfaceName, shell=True)
         interfaceName += "mon"
 except:
