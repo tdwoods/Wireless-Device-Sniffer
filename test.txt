@@ -1,4 +1,0 @@
-Welcome to Packet Sniffer
-[W] Make sure to use an interface in monitor mode!
-
-[I] Loading OUI Database...

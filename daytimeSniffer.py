@@ -144,7 +144,6 @@ def packetHandler(pkt):
 
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
-        pkt.pretty_print()
         debug("resolving mac")
         vendor = resolveMac(mac_address)
         debug("vendor query done")
