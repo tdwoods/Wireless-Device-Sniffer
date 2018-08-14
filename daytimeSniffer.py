@@ -42,8 +42,8 @@ try:
     wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=True)
     wirelessInterfaces = str(wirelessInterfaces).split("*")
     wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
-    print(wirelessInterfaces)
     interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()
+    print(interfaceName)
     if "mon" not in interfaceName:
         print("hi")
         suprocess.call("airmon-ng start " + interfaceName, shell=True)
