@@ -39,12 +39,12 @@ print("Welcome to Daytime Sniffer")
 
 print("[I] Selecting correct interface")
 try:
-    wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=True)
+    wirelessInterfaces = subprocess.check_output(["sudo","lshw","-C","network"],shell=True)
     wirelessInterfaces = str(wirelessInterfaces).split("*")
     wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
     interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()
     if "mon" not in interfaceName:
-        suprocess.call("airmon-ng start " + interfaceName, shell=True)
+        suprocess.call("sudo airmon-ng start " + interfaceName, shell=True)
         interfaceName += "mon"
 except:
     print("[I] Error setting up interface. Are you sure adapter is plugged in?")
@@ -106,7 +106,7 @@ def chopping():
         if not alreadyStopping:
             channels = [1, 6, 11]
             for channel in channels:
-                subprocess.call("iwconfig " + interfaceName + " channel " +
+                subprocess.call("sudo iwconfig " + interfaceName + " channel " +
                            str(channel) + " > /dev/null 2>&1", shell=True)
                 debug("[CHOPPER] HI IM RUNNING THIS COMMAND: " +
                       "iwconfig " + interfaceName + " channel " + str(channel))
@@ -121,7 +121,7 @@ def deviceUpdater():
         if not alreadyStopping:
             restartLine()
             print("[I] " + str(len(deviceDictionary))+ " devices found")
-            cpuTemp = subprocess.check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"])
+            cpuTemp = subprocess.check_output(["sudo", "cat", "/sys/class/thermal/thermal_zone0/temp"])
             cpuTemp = int(cpuTemp) / 1000
             print("[I] Cpu Temp: " + str(cpuTemp))
             print("[I] Time: " + str(currentTime))
