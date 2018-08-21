@@ -13,7 +13,6 @@ try:
     import threading
     import traceback
     import concurrent.futures
-    import urllib.request as urllib2
 except KeyboardInterrupt:
     debug("\n[I] Stopping...")
     raise SystemExit

@@ -106,7 +106,6 @@ sleepMin = int(serverInfo["sleepTime"].split(":")[1])
 sleepTime = datetime.time(hour=sleepHour,minute=sleepMin,second=0)
 sleepTime = datetime.datetime.combine(sleepDate,sleepTime)
 
-
 debug("[I] Loading MAC Database...")
 try:
     macFile = open("constant_devices.json","r")
@@ -114,6 +113,9 @@ try:
 except:
     debug("[I] Couldn't load mac database")
     macList = []
+
+debug("[I] Setting Database Name")
+dbName = serverInfo["activationCode"] + " | " + datetime.date.today() + ".db"
 
 debug("[I] Initiliazing Dictionary")
 deviceDictionary = {}
@@ -125,9 +127,9 @@ def stop():
         debug("setting stopping to true")
         alreadyStopping = True
         debug("\n[I] Stopping...")
-        debug("[I] Saving results to " + serverInfo["activationCode"] + str(datetime.date.today()) + ".db")
+        debug("[I] Saving results to " + dbName)
         saveToMYSQL()
-        debug("[I] Results saved to " + serverInfo["activationCode"] + str(datetime.date.today()) + ".db")
+        debug("[I] Results saved to " + dbName)
         debug("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
         #TODO Send final db to server and remove file to save space
         debug("[I] packetSniffer stopped.")
@@ -211,7 +213,7 @@ def saveToMYSQL():
     try:
         global deviceDictionary
         debug("saveToMYSQL called")
-        db = sqlite3.connect(str(datetime.date.today()) + ".db")
+        db = sqlite3.connect(dbName)
         cursor = db.cursor()
         for m in deviceDictionary:
             r = deviceDictionary[m]["RSSI"]
@@ -233,7 +235,7 @@ def main():
     debug("[I] Setting up SQLite...")
 
     try:
-        setupDB = sqlite3.connect(str(datetime.date.today()) + ".db")
+        setupDB = sqlite3.connect(dbName)
     except:
         debug("\n[!] Cant connect to database. Permission error?\n")
         exit()
