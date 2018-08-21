@@ -83,12 +83,12 @@ wakeHour = (int(serverInfo["sleepTime"].split(":")[0] + 1) + serverInfo["tzOffse
 wakeMinute = serverInfo["sleepTime"].split(":")[1]
 time.sleep(60)
 try:
-    subprocess.call("rm /etc/cron.d/digitalB_nighttime")
-    subprocess.call("touch /etc/cron.d/digitalB_nighttime")
+    subprocess.call("rm /etc/cron.d/digitalB_nighttime",shell=True)
+    subprocess.call("touch /etc/cron.d/digitalB_nighttime",shell=True)
 except:
     debug("[I] Couldn't call processes to remove cronjob")
 nighttimeJob = open("/etc/cron.d/digitalB_nighttime","w")
-nighttimeCommand = "{} {} * * * root cd /root/digitalB_Sniffer && /usr/bin/python3 nighttimeSniffer.py".format(wakeMinute, wakeHour)
+nighttimeCommand = "{} {} * * * root cd /root/DigitalB_Sniffer && /usr/bin/python3 nighttimeSniffer.py".format(wakeMinute, wakeHour)
 nighttimeJob.write(nighttimeCommand)
 nighttimeJob.close()
 
