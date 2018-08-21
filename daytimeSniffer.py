@@ -15,10 +15,10 @@ try:
     import concurrent.futures
     import urllib.request as urllib2
 except KeyboardInterrupt:
-    print("\n[I] Stopping...")
+    debug("\n[I] Stopping...")
     raise SystemExit
 except:
-    print("[!] Failed to import the dependencies... " +\
+    debug("[!] Failed to import the dependencies... " +\
             "Please make sure to install all of the requirements " +\
             "and try again.")
     raise SystemExit
@@ -35,9 +35,9 @@ def restartLine():
     sys.stdout.write("\r")
     sys.stdout.flush()
 
-print("Welcome to Daytime Sniffer")
+debug("Welcome to Daytime Sniffer")
 
-print("[I] Selecting correct interface")
+debug("[I] Selecting correct interface")
 try:
     wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=True)
     wirelessInterfaces = str(wirelessInterfaces).split("*")
@@ -48,39 +48,75 @@ try:
         subprocess.call(string, shell=True)
         interfaceName += "mon"
 except:
-    print("[I] Error setting up interface. Are you sure adapter is plugged in?")
+    debug("[I] Error setting up interface. Are you sure adapter is plugged in?")
     sys.exit(1)
 
 externalOptionsSet = False
 if debugMode:
     externalOptionsSet = True
-    print("[I] Showing Debug Messages...")
+    debug("[I] Showing Debug Messages...")
 if externalOptionsSet:
-    print()
+    debug()
 
-print("[I] Loading OUI Database...")
-resolveFile = open("oui.json", "r")
-resolveObj = json.load(resolveFile)
+debug("[I] Grabbing Customer Data From Server")
+    #TODO
+    #Grab from server
+    #Put into server_info.json
+try:
+    serverFile = open("server_info.json","r")
+    serverInfo = json.load(serverFile)
+    serverFile.close()
+except:
+    debug("[I] Server information not read")
+    serverInfo = {"activationCode": "test_code",
+                  "wakeTime":"9:30",
+                  "sleepTime":"18:30",
+                  "timeZone":"EST"}
 
-print("[I] Loading MAC Database...")
+debug("[I] Loading OUI Database...")
+try:
+    ouiFile = open("oui.json", "r")
+    ouiObj = json.load(ouiFile)
+    ouiFile.close()
+except:
+    debug("[I] Couldn't resolve OUI database")
+    ouiObj = {}
+
+debug("[I] Logging Current Time")
+currentTime = datetime.datetime.now()
+
+debug("[I] Setting Wake Time")
+wakeHour = (int(serverInfo["wakeTime"].split(":")[0]) + serverInfo["tzOffset"]) % 24
+wakeMinute = serverInfo["wakeTime"].split(":")[1]
+time.sleep(60)
+try:
+    subprocess.call("rm /etc/cron.d/digitalB_daytime")
+    subprocess.call("touch /etc/cron.d/digitalB_daytime")
+except:
+    debug("[I] Couldn't call processes to remove cronjob")
+daytimeJob = open("/etc/cron.d/digitalB_daytime","w")
+daytimeCommand = "{} {} * * * root cd /root/digitalB_Sniffer && /usr/bin/python3 daytimeSniffer.py".format(wakeMinute, wakeHour)
+daytimeJob.write(daytimeCommand)
+daytimeJob.close()
+
+debug("[I] Setting Sleep Time")
+sleepDate = datetime.date.today()
+sleepHour = (int(serverInfo["sleepTime"].split(":")[0]) + serverInfo["tzOffset"]) % 24
+sleepMin = int(serverInfo["sleepTime"].split(":")[1])
+sleepTime = datetime.time(hour=sleepHour,minute=sleepMin,second=0)
+sleepTime = datetime.datetime.combine(sleepDate,sleepTime)
+
+
+debug("[I] Loading MAC Database...")
 try:
     macFile = open("constant_devices.json","r")
     macList = json.load(macFile)
 except:
-    print("[I] Couldn't load mac database")
+    debug("[I] Couldn't load mac database")
     macList = []
 
-print("[I] Initiliazing Dictionary")
+debug("[I] Initiliazing Dictionary")
 deviceDictionary = {}
-
-print("[I] Logging Current Time")
-currentTime = datetime.datetime.now()
-
-print("[I] Setting Stop Time")
-stopDate = datetime.date.today()
-stopTime = datetime.time(hour=22,minute=0,second=0)
-stopTime = datetime.datetime.combine(stopDate,stopTime)
-
 
 def stop():
     global alreadyStopping
@@ -88,18 +124,19 @@ def stop():
     if not alreadyStopping:
         debug("setting stopping to true")
         alreadyStopping = True
-        print("\n[I] Stopping...")
-        print("[I] Saving results to " + str(datetime.date.today()) + ".db")
+        debug("\n[I] Stopping...")
+        debug("[I] Saving results to " + serverInfo["activationCode"] + str(datetime.date.today()) + ".db")
         saveToMYSQL()
-        print("[I] Results saved to " + str(datetime.date.today()) + ".db")
-        print("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
-        print("[I] packetSniffer stopped.")
+        debug("[I] Results saved to " + serverInfo["activationCode"] + str(datetime.date.today()) + ".db")
+        debug("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
+        #TODO Send final db to server and remove file to save space
+        debug("[I] packetSniffer stopped.")
         raise SystemExit
 
 
 def debug(msg):
     if debugMode:
-        print("[DEBUG] " + msg)
+        debug("[DEBUG] " + msg)
 
 
 def chopping():
@@ -121,21 +158,22 @@ def deviceUpdater():
     while True:
         if not alreadyStopping:
             restartLine()
-            print("[I] " + str(len(deviceDictionary))+ " devices found")
+            debug("[I] " + str(len(deviceDictionary))+ " devices found")
             cpuTemp = subprocess.check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"])
             cpuTemp = int(cpuTemp) / 1000
-            print("[I] Cpu Temp: " + str(cpuTemp))
-            print("[I] Time: " + str(currentTime))
+            debug("[I] Cpu Temp: " + str(cpuTemp))
+            debug("[I] Time: " + str(currentTime))
             saveToMYSQL()
+            #TODO send current db to server
             time.sleep(900)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
             sys.exit()
 
 def resolveMac(mac):
-    global resolveObj
-    if mac[:8].upper() in resolveObj:
-        return resolveObj[mac[:8].upper() ]
+    global ouiObj
+    if mac[:8].upper() in ouiObj:
+        return ouiObj[mac[:8].upper() ]
     return "COULDNT-RESOLVE"
 
 def packetHandler(pkt):
@@ -185,19 +223,19 @@ def saveToMYSQL():
         db.commit()
         db.close()
     except:
-        print("Crash saveSQL")
+        debug("Crash saveSQL")
         debug("[!!!] CRASH IN saveToMYSQL")
         debug(traceback.format_exc())
 
 def main():
     global alreadyStopping
 
-    print("[I] Setting up SQLite...")
+    debug("[I] Setting up SQLite...")
 
     try:
         setupDB = sqlite3.connect(str(datetime.date.today()) + ".db")
     except:
-        print("\n[!] Cant connect to database. Permission error?\n")
+        debug("\n[!] Cant connect to database. Permission error?\n")
         exit()
     setupCursor = setupDB.cursor()
     setupCursor.execute("DROP TABLE IF EXISTS packetSniffer")
@@ -209,23 +247,23 @@ def main():
     setupDB.commit()
     setupDB.close()
 
-    print("[I] Starting channelhopper in a new thread...")
+    debug("[I] Starting channelhopper in a new thread...")
     path = os.path.realpath(__file__)
     chopper = threading.Thread(target=chopping)
     chopper.daemon = True
     chopper.start()
 
-    print("[I] Starting deviceUpdater in a new thread...")
+    debug("[I] Starting deviceUpdater in a new thread...")
     path = os.path.realpath(__file__)
     updater = threading.Thread(target=deviceUpdater)
     updater.daemon = True
     updater.start()
 
-    print("\n[I] Sniffing started... Please wait for requests to show up...\n")
+    debug("\n[I] Sniffing started... Please wait for requests to show up...\n")
 
     while True:
         try:
-            timeoutPeriod = (stopTime - currentTime).total_seconds()
+            timeoutPeriod = (sleepTime - currentTime).total_seconds()
             capture = pyshark.LiveCapture(interface=interfaceName, bpf_filter="type mgt subtype probe-req")
             capture.apply_on_packets(packetHandler, timeout = timeoutPeriod)
         except KeyboardInterrupt:
@@ -233,9 +271,9 @@ def main():
         except concurrent.futures.TimeoutError:
             stop()
         except:
-            print("[!] An error occurred. Debug:")
-            print(traceback.format_exc())
-            print("[!] Restarting in 5 sec... Press CTRL + C to stop.")
+            debug("[!] An error occurred. Debug:")
+            debug(traceback.format_exc())
+            debug("[!] Restarting in 5 sec... Press CTRL + C to stop.")
             try:
                 time.sleep(5)
             except:
