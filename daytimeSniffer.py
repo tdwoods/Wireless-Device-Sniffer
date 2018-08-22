@@ -84,7 +84,6 @@ debug("[I] Setting Wake Time")
 wakeHour = (int(serverInfo["wakeTime"].split(":")[0]) + serverInfo["tzOffset"]) % 24
 wakeMinute = serverInfo["wakeTime"].split(":")[1]
 debug(str(wakeHour)+" " + wakeMinute)
-time.sleep(60)
 
 debug("[I] Updating Cron Job")
 try:
@@ -114,7 +113,7 @@ except:
     macList = []
 
 debug("[I] Setting Database Name")
-dbName = serverInfo["activationCode"] + " | " + datetime.date.today() + ".db"
+dbName = serverInfo["activationCode"] + " | " + datetime.date.today().strftime("%Y-%m-%d") + ".db"
 
 debug("[I] Initiliazing Dictionary")
 deviceDictionary = {}
