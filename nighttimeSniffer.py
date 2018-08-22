@@ -61,6 +61,7 @@ try:
     #Grab from server
     #Write to serverInfo.json
     #Check documentation for specific way to write data
+    str = 1 + "hello" #Causes try block to fail and except loop to run
 except:
     debug("[I] Server information not read")
     serverFile = open("serverInfo.json","r")
