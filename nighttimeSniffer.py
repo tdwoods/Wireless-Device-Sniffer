@@ -83,7 +83,7 @@ currentTime = datetime.datetime.now()
 debug("[I] Setting Wake Time")
 wakeHour = (int(serverInfo["sleepTime"].split(":")[0] + 1) + serverInfo["tzOffset"]) % 24
 wakeMinute = serverInfo["sleepTime"].split(":")[1]
-debug(str(wakeHour)+" " + wakeMinute))
+debug(str(wakeHour)+" " + wakeMinute)
 time.sleep(60)
 
 debug("[I] Updating Cron Job")
