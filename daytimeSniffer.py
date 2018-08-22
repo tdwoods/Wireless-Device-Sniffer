@@ -35,7 +35,7 @@ def restartLine():
     sys.stdout.write("\r")
     sys.stdout.flush()
 
-def debug(msg):
+def debug(msg=""):
     if debugMode:
         print("[DEBUG] " + msg)
 
