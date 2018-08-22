@@ -29,10 +29,6 @@ args = parser.parse_args()
 debugMode = args.debug
 alreadyStopping = False
 
-def restartLine():
-    sys.stdout.write("\r")
-    sys.stdout.flush()
-
 def debug(msg=""):
     if debugMode:
         print("[DEBUG] " + msg)
@@ -46,7 +42,7 @@ try:
     wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
     interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()
     if "mon" not in interfaceName:
-        suprocess.call("airmon-ng start " + interfaceName, shell=True)
+        subprocess.call("airmon-ng start " + interfaceName, shell=True)
         interfaceName += "mon"
 except:
     debug("[I] Error setting up interface. Are you sure adapter is plugged in?")
@@ -60,24 +56,25 @@ if externalOptionsSet:
     debug()
 
 debug("[I] Grabbing Customer Data From Server")
+try:
     #TODO
     #Grab from server
-    #Format:
-        # {"activation code":value
-        #  "wakeTime":value
-        #  "sleepTime":value
-        #  "tzOffset":value}
-    #Put into server_info.json
-try:
-    serverFile = open("server_info.json","r")
-    serverInfo = json.load(serverFile)
-    serverFile.close()
+    #Write to serverInfo.json
+    #Check documentation for specific way to write data
 except:
     debug("[I] Server information not read")
-    serverInfo = {"activationCode": "test_code",
-                  "wakeTime":"9:30",
-                  "sleepTime":"18:30",
-                  "timeZone":"EST"}
+    serverFile = open("serverInfo.json","r")
+    serverInfo = json.load(serverFile)
+    serverFile.close()
+
+debug("[I] Loading OUI Database...")
+try:
+    ouiFile = open("oui.json", "r")
+    ouiObj = json.load(ouiFile)
+    ouiFile.close()
+except:
+    debug("[I] Couldn't resolve OUI database")
+    ouiObj = {}
 
 debug("[I] Logging Current Time")
 currentTime = datetime.datetime.now()
@@ -85,7 +82,10 @@ currentTime = datetime.datetime.now()
 debug("[I] Setting Wake Time")
 wakeHour = (int(serverInfo["sleepTime"].split(":")[0] + 1) + serverInfo["tzOffset"]) % 24
 wakeMinute = serverInfo["sleepTime"].split(":")[1]
+debug(str(wakeHour)+" " + wakeMinute))
 time.sleep(60)
+
+debug("[I] Updating Cron Job")
 try:
     subprocess.call("rm /etc/cron.d/digitalB_nighttime",shell=True)
     subprocess.call("touch /etc/cron.d/digitalB_nighttime",shell=True)
@@ -102,10 +102,6 @@ sleepHour = (int(serverInfo["wakeTime"].split(":")[0] - 1) + serverInfo["tzOffse
 sleepMin = int(serverInfo["wakeTime"].split(":")[1])
 sleepTime = datetime.time(hour=sleepHour,minute=sleepMin,second=0)
 sleepTime = datetime.datetime.combine(sleepDate,sleepTime)
-
-debug("[I] Loading OUI Database...")
-resolveFile = open("oui.json", "r")
-resolveObj = json.load(resolveFile)
 
 debug("[I] Initiliazing Dictionary")
 deviceDictionary = {}
@@ -168,7 +164,6 @@ def chopping():
 def deviceUpdater():
     while True:
         if not alreadyStopping:
-            restartLine()
             debug("[I] " + str(len(deviceDictionary))+ " devices found")
             cpuTemp = subprocess.check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"])
             cpuTemp = int(cpuTemp) / 1000
@@ -181,9 +176,9 @@ def deviceUpdater():
             sys.exit()
 
 def resolveMac(mac):
-    global resolveObj
-    if mac[:8].upper() in resolveObj:
-        return resolveObj[mac[:8].upper()]
+    global ouiObj
+    if mac[:8].upper() in ouiObj:
+        return ouiObj[mac[:8].upper()]
     return "COULDNT-RESOLVE"
 
 def packetHandler(pkt):
@@ -203,9 +198,6 @@ def packetHandler(pkt):
         currentTime = datetime.datetime.now()
 
         debug("adding to dictionary")
-        # if vendor != "COULDNT-RESOLVE":
-        #     if mac_address not in macList:
-        #         debug("success added")
         if mac_address in deviceDictionary:
             deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%Y-%m-%d %H:%M:%S")
             deviceDictionary[mac_address]["timesCounted"] += 1
@@ -265,7 +257,6 @@ def main():
     chopper = threading.Thread(target=chopping)
     chopper.daemon = True
     chopper.start()
-    #statusWidget(len(deviceDictionary.keys()))
 
     debug("[I] Starting deviceUpdater in a new thread...")
     path = os.path.realpath(__file__)

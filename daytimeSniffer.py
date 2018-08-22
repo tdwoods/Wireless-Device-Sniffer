@@ -13,7 +13,6 @@ try:
     import threading
     import traceback
     import concurrent.futures
-    import urllib.request as urllib2
 except KeyboardInterrupt:
     debug("\n[I] Stopping...")
     raise SystemExit
@@ -23,17 +22,12 @@ except:
             "and try again.")
     raise SystemExit
 
-parser = argparse.ArgumentParser(
-    usage="packetSniffer.py [options]")
+parser = argparse.ArgumentParser(usage="packetSniffer.py [options]")
 parser.add_argument("--debug", action="store_true", help="turn debug mode on")
 
 args = parser.parse_args()
 debugMode = args.debug
 alreadyStopping = False
-
-def restartLine():
-    sys.stdout.write("\r")
-    sys.stdout.flush()
 
 def debug(msg=""):
     if debugMode:
@@ -48,8 +42,7 @@ try:
     wirelessInterfaces = [x for x in wirelessInterfaces if "Ralink" in x][0].split("\\n")
     interfaceName = [x for x in wirelessInterfaces if "logical name" in x][0].split(":")[1].strip()
     if "mon" not in interfaceName:
-        string = "airmon-ng start " + interfaceName
-        subprocess.call(string, shell=True)
+        subprocess.call("airmon-ng start " + interfaceName, shell=True)
         interfaceName += "mon"
 except:
     debug("[I] Error setting up interface. Are you sure adapter is plugged in?")
@@ -63,19 +56,16 @@ if externalOptionsSet:
     debug()
 
 debug("[I] Grabbing Customer Data From Server")
+try:
     #TODO
     #Grab from server
-    #Put into server_info.json
-try:
-    serverFile = open("server_info.json","r")
-    serverInfo = json.load(serverFile)
-    serverFile.close()
+    #Write to serverInfo.json
+    #Check documentation for specific way to write data
 except:
     debug("[I] Server information not read")
-    serverInfo = {"activationCode": "test_code",
-                  "wakeTime":"9:30",
-                  "sleepTime":"18:30",
-                  "timeZone":"EST"}
+    serverFile = open("serverInfo.json","r")
+    serverInfo = json.load(serverFile)
+    serverFile.close()
 
 debug("[I] Loading OUI Database...")
 try:
@@ -92,7 +82,10 @@ currentTime = datetime.datetime.now()
 debug("[I] Setting Wake Time")
 wakeHour = (int(serverInfo["wakeTime"].split(":")[0]) + serverInfo["tzOffset"]) % 24
 wakeMinute = serverInfo["wakeTime"].split(":")[1]
+debug(str(wakeHour)+" " + wakeMinute))
 time.sleep(60)
+
+debug("[I] Updating Cron Job")
 try:
     subprocess.call("rm /etc/cron.d/digitalB_daytime",shell=True)
     subprocess.call("touch /etc/cron.d/digitalB_daytime",shell=True)
@@ -114,6 +107,7 @@ debug("[I] Loading MAC Database...")
 try:
     macFile = open("constant_devices.json","r")
     macList = json.load(macFile)
+    macFile.close()
 except:
     debug("[I] Couldn't load mac database")
     macList = []
@@ -135,7 +129,7 @@ def stop():
         saveToMYSQL()
         debug("[I] Results saved to " + dbName)
         debug("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
-        #TODO Send final db to server and remove file to save space
+        #TODO Send final db to server and remove local file to save space
         debug("[I] packetSniffer stopped.")
         raise SystemExit
 
@@ -157,7 +151,6 @@ def chopping():
 def deviceUpdater():
     while True:
         if not alreadyStopping:
-            restartLine()
             debug("[I] " + str(len(deviceDictionary))+ " devices found")
             cpuTemp = subprocess.check_output(["cat", "/sys/class/thermal/thermal_zone0/temp"])
             cpuTemp = int(cpuTemp) / 1000
@@ -181,8 +174,10 @@ def packetHandler(pkt):
         global currentTime
         global deviceDictionary
 
+        debug("packetHandler Started")
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
+
         debug("resolving mac")
         vendor = resolveMac(mac_address)
         debug("vendor query done")
@@ -231,7 +226,6 @@ def main():
     global alreadyStopping
 
     debug("[I] Setting up SQLite...")
-
     try:
         setupDB = sqlite3.connect(dbName)
     except:
