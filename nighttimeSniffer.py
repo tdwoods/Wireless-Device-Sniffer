@@ -33,6 +33,11 @@ def restartLine():
     sys.stdout.write("\r")
     sys.stdout.flush()
 
+def debug(msg):
+    if debugMode:
+        debug("[DEBUG] " + msg)
+        restartLine()
+
 debug("Welcome to Nighttime Sniffer")
 
 debug("[I] Selecting correct interface")
@@ -146,12 +151,6 @@ def stop():
         debug("[I] packetSniffer stopped.")
         raise SystemExit
 
-
-def debug(msg):
-    if debugMode:
-        debug("[DEBUG] " + msg)
-
-
 def chopping():
     while True:
         if not alreadyStopping:
@@ -247,7 +246,6 @@ def main():
     global alreadyStopping
 
     debug("[I] Setting up SQLite...")
-
     try:
         setupDB = sqlite3.connect("overnight_capture.db")
     except:

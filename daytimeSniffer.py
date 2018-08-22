@@ -35,6 +35,11 @@ def restartLine():
     sys.stdout.write("\r")
     sys.stdout.flush()
 
+def debug(msg):
+    if debugMode:
+        debug("[DEBUG] " + msg)
+        restartLine()
+
 debug("Welcome to Daytime Sniffer")
 
 debug("[I] Selecting correct interface")
@@ -134,12 +139,6 @@ def stop():
         #TODO Send final db to server and remove file to save space
         debug("[I] packetSniffer stopped.")
         raise SystemExit
-
-
-def debug(msg):
-    if debugMode:
-        debug("[DEBUG] " + msg)
-
 
 def chopping():
     while True:
