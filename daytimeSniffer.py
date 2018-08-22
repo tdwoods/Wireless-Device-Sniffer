@@ -37,7 +37,7 @@ def restartLine():
 
 def debug(msg):
     if debugMode:
-        debug("[DEBUG] " + msg)
+        print("[DEBUG] " + msg)
 
 debug("Welcome to Daytime Sniffer")
 
