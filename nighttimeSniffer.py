@@ -81,7 +81,7 @@ debug("[I] Logging Current Time")
 currentTime = datetime.datetime.now()
 
 debug("[I] Setting Wake Time")
-wakeHour = (int(serverInfo["sleepTime"].split(":")[0] + 1) + serverInfo["tzOffset"]) % 24
+wakeHour = (int(serverInfo["sleepTime"].split(":")[0]) + 1 + serverInfo["tzOffset"]) % 24
 wakeMinute = serverInfo["sleepTime"].split(":")[1]
 debug(str(wakeHour)+" " + wakeMinute)
 
@@ -98,7 +98,7 @@ nighttimeJob.close()
 
 debug("[I] Setting Sleep Time")
 sleepDate = datetime.date.today() + datetime.timedelta(days = 1)
-sleepHour = (int(serverInfo["wakeTime"].split(":")[0] - 1) + serverInfo["tzOffset"]) % 24
+sleepHour = (int(serverInfo["wakeTime"].split(":")[0]) - 1 + serverInfo["tzOffset"]) % 24
 sleepMin = int(serverInfo["wakeTime"].split(":")[1])
 sleepTime = datetime.time(hour=sleepHour,minute=sleepMin,second=0)
 sleepTime = datetime.datetime.combine(sleepDate,sleepTime)
