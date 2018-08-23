@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# -.- coding: utf-8 -.-
+# -.- coding: utf-8
+#Section 0: Requirements
 try:
     import subprocess
     import os
@@ -29,12 +30,19 @@ args = parser.parse_args()
 debugMode = args.debug
 alreadyStopping = False
 
+externalOptionsSet = False
+if debugMode:
+    externalOptionsSet = True
+    print("[I] Showing Debug Messages...")
+if externalOptionsSet:
+    print()
+
 def debug(msg=""):
     if debugMode:
         print("[DEBUG] " + msg)
 
 debug("Welcome to Daytime Sniffer")
-
+#Section 1: Setup
 debug("[I] Selecting correct interface")
 try:
     wirelessInterfaces = subprocess.check_output(["lshw","-C","network"],shell=True)
@@ -47,13 +55,6 @@ try:
 except:
     debug("[I] Error setting up interface. Are you sure adapter is plugged in?")
     sys.exit(1)
-
-externalOptionsSet = False
-if debugMode:
-    externalOptionsSet = True
-    debug("[I] Showing Debug Messages...")
-if externalOptionsSet:
-    debug()
 
 debug("[I] Grabbing Customer Data From Server")
 try:
@@ -118,6 +119,7 @@ dbName = serverInfo["activationCode"] + " | " + datetime.date.today().strftime("
 debug("[I] Initiliazing Dictionary")
 deviceDictionary = {}
 
+#Section 2: Helper Functions
 def stop():
     global alreadyStopping
     debug("stoping called")
@@ -126,14 +128,14 @@ def stop():
         alreadyStopping = True
         debug("\n[I] Stopping...")
         debug("[I] Saving results to " + dbName)
-        saveToMYSQL()
+        saveToMySQL()
         debug("[I] Results saved to " + dbName)
         debug("Stopped at: " + datetime.datetime.now().strftime("%H:%M:%S"))
         #TODO Send final db to server and remove local file to save space
         debug("[I] packetSniffer stopped.")
         raise SystemExit
 
-def chopping():
+def channelHopper():
     while True:
         if not alreadyStopping:
             channels = [1, 6, 11]
@@ -156,7 +158,7 @@ def deviceUpdater():
             cpuTemp = int(cpuTemp) / 1000
             debug("[I] Cpu Temp: " + str(cpuTemp))
             debug("[I] Time: " + str(currentTime))
-            saveToMYSQL()
+            saveToMySQL()
             #TODO send current db to server
             time.sleep(900)
         else:
@@ -197,7 +199,7 @@ def packetHandler(pkt):
         debug("[!!!] CRASH IN packetHandler")
         debug(traceback.format_exc())
 
-def saveToMYSQL():
+def saveToMySQL():
     try:
         global deviceDictionary
         debug("saveToMYSQL called")
@@ -217,6 +219,7 @@ def saveToMYSQL():
         debug("[!!!] CRASH IN saveToMYSQL")
         debug(traceback.format_exc())
 
+#Section 3: Main Function
 def main():
     global alreadyStopping
 
@@ -238,7 +241,7 @@ def main():
 
     debug("[I] Starting channelhopper in a new thread...")
     path = os.path.realpath(__file__)
-    chopper = threading.Thread(target=chopping)
+    chopper = threading.Thread(target=channelHopper)
     chopper.daemon = True
     chopper.start()
 

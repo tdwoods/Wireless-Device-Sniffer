@@ -29,6 +29,13 @@ args = parser.parse_args()
 debugMode = args.debug
 alreadyStopping = False
 
+externalOptionsSet = False
+if debugMode:
+    externalOptionsSet = True
+    print("[I] Showing Debug Messages...")
+if externalOptionsSet:
+    print()
+
 def debug(msg=""):
     if debugMode:
         print("[DEBUG] " + msg)
@@ -47,13 +54,6 @@ try:
 except:
     debug("[I] Error setting up interface. Are you sure adapter is plugged in?")
     sys.exit(1)
-
-externalOptionsSet = False
-if debugMode:
-    externalOptionsSet = True
-    debug("[I] Showing Debug Messages...")
-if externalOptionsSet:
-    debug()
 
 debug("[I] Grabbing Customer Data From Server")
 try:
@@ -114,7 +114,7 @@ def stop():
         alreadyStopping = True
         debug("\n[I] Stopping...")
         debug("[I] Saving results to overnight_capture.db")
-        saveToMYSQL()
+        saveToMySQL()
         debug("[I] Results saved to overnight_capture.db")
 
         debug("[I] Trying to read from capture_devices.json")
@@ -146,7 +146,7 @@ def stop():
         debug("[I] packetSniffer stopped.")
         raise SystemExit
 
-def chopping():
+def channelHopper():
     while True:
         if not alreadyStopping:
             channels = [1, 6, 11]
@@ -169,7 +169,7 @@ def deviceUpdater():
             cpuTemp = int(cpuTemp) / 1000
             debug("[I] Cpu Temp: " + str(cpuTemp))
             debug("[I] Time: " + str(currentTime))
-            saveToMYSQL()
+            saveToMySQL()
             time.sleep(900)
         else:
             debug("[deviceUpdate] IM STOPPING TOO")
@@ -208,10 +208,10 @@ def packetHandler(pkt):
         debug("[!!!] CRASH IN packetHandler")
         debug(traceback.format_exc())
 
-def saveToMYSQL():
+def saveToMySQL():
     try:
         global deviceDictionary
-        debug("saveToMYSQL called")
+        debug("saveToMySQL called")
         db = sqlite3.connect("overnight_capture.db")
         cursor = db.cursor()
         for m in deviceDictionary:
@@ -225,7 +225,7 @@ def saveToMYSQL():
         db.close()
     except:
         debug("Crash saveSQL")
-        debug("[!!!] CRASH IN saveToMYSQL")
+        debug("[!!!] CRASH IN saveToMySQL")
         debug(traceback.format_exc())
 
 def main():
@@ -249,7 +249,7 @@ def main():
 
     debug("[I] Starting channelhopper in a new thread...")
     path = os.path.realpath(__file__)
-    chopper = threading.Thread(target=chopping)
+    chopper = threading.Thread(target=channelHopper)
     chopper.daemon = True
     chopper.start()
 
