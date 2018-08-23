@@ -88,9 +88,9 @@ debug(str(wakeHour)+" " + wakeMinute)
 debug("[I] Updating Cron Job")
 try:
     subprocess.call("rm /etc/cron.d/digitalB_daytime",shell=True)
-    subprocess.call("touch /etc/cron.d/digitalB_daytime",shell=True)
 except:
     debug("[I] Couldn't call processes to remove cronjob")
+subprocess.call("touch /etc/cron.d/digitalB_daytime",shell=True)
 daytimeJob = open("/etc/cron.d/digitalB_daytime","w")
 daytimeCommand = "{} {} * * * root cd /root/DigitalB_Sniffer && /usr/bin/python3 daytimeSniffer.py".format(wakeMinute, wakeHour)
 daytimeJob.write(daytimeCommand)
@@ -174,18 +174,13 @@ def packetHandler(pkt):
         global currentTime
         global deviceDictionary
 
-        debug("packetHandler Started")
         rssi = pkt.radiotap.dbm_antsignal
         mac_address = pkt.wlan.ta
 
-        debug("resolving mac")
         vendor = resolveMac(mac_address)
-        debug("vendor query done")
 
-        debug("setting current time")
         currentTime = datetime.datetime.now()
 
-        debug("adding to dictionary")
         if mac_address not in macList:
             if mac_address in deviceDictionary:
                 deviceDictionary[mac_address]["timeLastSeen"] = currentTime.strftime("%H:%M:%S")

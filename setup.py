@@ -43,9 +43,10 @@ debug(str(wakeHour)+" " + wakeMinute)
 
 debug("[I] Updating Cron Job")
 try:
-    subprocess.call("touch /etc/cron.d/digitalB_daytime",shell=True)
+    subprocess.call("rm /etc/cron.d/digitalB_daytime",shell=True)
 except:
     debug("[I] Couldn't call processes to remove cronjob")
+subprocess.call("touch /etc/cron.d/digitalB_daytime",shell=True)
 daytimeJob = open("/etc/cron.d/digitalB_daytime","w")
 daytimeCommand = "{} {} * * * root cd /root/DigitalB_Sniffer && /usr/bin/python3 daytimeSniffer.py".format(wakeMinute, wakeHour)
 daytimeJob.write(daytimeCommand)
@@ -58,9 +59,10 @@ debug(str(wakeHour)+" " + wakeMinute)
 
 debug("[I] Updating Cron Job")
 try:
-    subprocess.call("touch /etc/cron.d/digitalB_nighttime",shell=True)
+    subprocess.call("rm /etc/cron.d/digitalB_nighttime",shell=True)
 except:
     debug("[I] Couldn't call processes to remove cronjob")
+subprocess.call("touch /etc/cron.d/digitalB_nighttime",shell=True)
 nighttimeJob = open("/etc/cron.d/digitalB_nighttime","w")
 nighttimeCommand = "{} {} * * * root cd /root/DigitalB_Sniffer && /usr/bin/python3 nighttimeSniffer.py".format(wakeMinute, wakeHour)
 nighttimeJob.write(nighttimeCommand)
